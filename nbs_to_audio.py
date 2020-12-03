@@ -40,6 +40,16 @@ def load_instruments():
 	return segments
 
 
+def change_speed(sound, speed=1.0):
+	# From: https://stackoverflow.com/a/51434954/9045426
+	
+	new = sound._spawn(sound.raw_data, overrides={
+								"frame_rate": int(sound.frame_rate * speed)
+							})
+	
+	return new.set_frame_rate(sound.frame_rate)
+
+
 def render_audio(song, output_path, loops=0, fadeout=False):
 	
 	instruments = load_instruments()
@@ -68,7 +78,8 @@ def render_audio(song, output_path, loops=0, fadeout=False):
 		
 		print("Converting note {}/{} (tick: {}, vol: {}, pan: {}, pit: {})".format(i+1, len(song.notes), note.tick, vol, pan, pitch))
 		
-		sound = sound.apply_gain(gain).pan(pan)#.speedup(pitch)
+		sound = sound.apply_gain(gain).pan(pan)
+		sound = change_speed(sound, pitch)
 		track = track.overlay(sound, position=pos)
 			
 			
