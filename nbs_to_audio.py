@@ -82,6 +82,12 @@ def render_audio(song, output_path, loops=0, fadeout=False, target_bitrate=320, 
 		sound = sound.apply_gain(gain).pan(pan)
 		sound = sound.apply_gain(master_gain)
 		sound = change_speed(sound, pitch)
+		
+		# Ensure track is long enough to hold the note
+		diff = (pos + len(sound)) - len(track)
+		if diff > 0:
+			track = track + pydub.AudioSegment.silent(duration=diff)
+		
 		track = track.overlay(sound, position=pos)
 	
 	# Normalize to -3 dBFS
