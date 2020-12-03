@@ -72,9 +72,9 @@ def render_audio(song, output_path, loops=0, fadeout=False, target_bitrate=320, 
 		vol = layer_vol * note_vol
 		gain = -((1.0 - vol) * 30)
 		
-		layer_pan = song.layers[note.layer].panning
-		note_pan = note.panning
-		pan = layer_pan * note_pan
+		layer_pan = song.layers[note.layer].panning / 100
+		note_pan = note.panning / 100
+		pan = -(layer_pan + note_pan) / 2
 		
 		print("Converting note {}/{} (tick: {}, vol: {}, pan: {}, pit: {})".format(i+1, len(song.notes), note.tick, vol, pan, pitch))
 		
