@@ -56,6 +56,7 @@ def render_audio(song, output_path, loops=0, fadeout=False, target_bitrate=320, 
 	
 	length = song.header.song_length / song.header.tempo * 1000
 	track = pydub.AudioSegment.silent(duration=length)
+	master_gain = -12.0
 	
 	for i, note in enumerate(song.notes):
 		
@@ -79,13 +80,14 @@ def render_audio(song, output_path, loops=0, fadeout=False, target_bitrate=320, 
 		print("Converting note {}/{} (tick: {}, vol: {}, pan: {}, pit: {})".format(i+1, len(song.notes), note.tick, vol, pan, pitch))
 		
 		sound = sound.apply_gain(gain).pan(pan)
+		sound = sound.apply_gain(master_gain)
 		sound = change_speed(sound, pitch)
 		track = track.overlay(sound, position=pos)
 			
 			
 	
 	# Normalize to -3 dBFS
-	track = track.normalize(headroom=3.0)
+	track = track.normalize(headroom=0.0)
 	
 	seconds = track.duration_seconds
 	
