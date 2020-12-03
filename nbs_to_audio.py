@@ -50,7 +50,7 @@ def change_speed(sound, speed=1.0):
 	return new.set_frame_rate(sound.frame_rate)
 
 
-def render_audio(song, output_path, loops=0, fadeout=False):
+def render_audio(song, output_path, loops=0, fadeout=False, target_bitrate=320, target_size=None):
 	
 	instruments = load_instruments()
 	
@@ -87,9 +87,17 @@ def render_audio(song, output_path, loops=0, fadeout=False):
 	# Normalize to -3 dBFS
 	track = track.normalize(headroom=3.0)
 	
+	seconds = track.duration_seconds
+	
+	if target_size:
+		bitrate = (target_size / seconds) * 8
+		bitrate = min(bitrate, target_bitrate)
+	else:
+		bitrate = target_bitrate
+	
 	file_handle = track.export(output_path,
 							   format="mp3",
-							   bitrate="320k",
+							   bitrate="{}k".format(bitrate),
 							   tags={"artist": "test"})
 						   
 	return file_handle
