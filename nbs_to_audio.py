@@ -85,12 +85,7 @@ def render_audio(song, output_path, loops=0, fadeout=False):
 			
 	
 	# Normalize to -3 dBFS
-	#track = track.apply_gain(-track.max_dBFS - 3)
-	
-	
-	
-	#Fade out
-	#track.fade...
+	track = track.normalize(headroom=3.0)
 	
 	file_handle = track.export(output_path,
 							   format="mp3",
