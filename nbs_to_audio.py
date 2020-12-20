@@ -73,6 +73,8 @@ def render_audio(song, output_path, loops=0, fadeout=False, target_bitrate=320, 
 		layer_vol = song.layers[note.layer].volume / 100
 		note_vol = note.velocity / 100
 		vol = layer_vol * note_vol
+		if vol == 0:
+			continue
 		gain = math.log(max(vol, 0.0001), 10) * 20
 		
 		layer_pan = song.layers[note.layer].panning / 100
