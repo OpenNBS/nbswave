@@ -65,7 +65,9 @@ def render_audio(song, output_path, loops=0, fadeout=False, target_bitrate=320, 
 		
 		sound = instruments[note.instrument]
 		
-		pitch = 2**((note.key - 45) / 12)
+		key = note.key - 45
+		detune = note.pitch / 100
+		pitch = 2**((key + detune) / 12)
 		pos = note.tick / song.header.tempo * 1000
 		
 		layer_vol = song.layers[note.layer].volume / 100
