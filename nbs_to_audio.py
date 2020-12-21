@@ -51,6 +51,33 @@ def change_speed(sound, speed=1.0):
 	return new.set_frame_rate(sound.frame_rate)
 
 
+def sort_notes(song):
+
+	notes = []
+	for note in song.notes:
+		layer = song.layers[note.layer]
+		
+		key = note.key - 45
+		detune = note.pitch / 100
+		pitch = key + detune
+		
+		layer_vol = layer.volume / 100
+		note_vol = note.velocity / 100
+		vol = layer_vol * note_vol
+		
+		layer_pan = layer.panning / 100
+		note_pan = note.panning / 100
+		if layer_pan == 0:
+			pan = note_pan
+		else:
+			pan = (layer_pan + note_pan) / 2
+		
+		new = Note(note.tick, note.instrument, pitch, vol, pan)
+		notes.append(new)
+	
+	return sorted(notes, key=lambda x: (x.instrument, x.pitch, x.volume, x.panning))
+	
+
 def render_audio(song, output_path, loops=0, fadeout=False, target_bitrate=320, target_size=None):
 	
 	instruments = load_instruments()
