@@ -85,7 +85,8 @@ def render_audio(song, output_path, loops=0, fadeout=False, target_bitrate=320, 
 			pan = (layer_pan + note_pan) / 2
 		pan = min(max(pan, -1), 1)
 		
-		print("Converting note {}/{} (tick: {}, vol: {}, pan: {}, pit: {})".format(i+1, len(song.notes), note.tick, vol, pan, pitch))
+		if i % 10 == 0:
+			print("Converting note {}/{} (tick: {}, layer: {}, vol: {}, pan: {}, pit: {})".format(i+1, len(song.notes), note.tick, note.layer, vol, pan, pitch))
 		
 		sound = sound.apply_gain(gain).pan(pan)
 		sound = sound.apply_gain(master_gain)
