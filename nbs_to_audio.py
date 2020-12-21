@@ -115,5 +115,5 @@ def render_audio(song, output_path, loops=0, fadeout=False, target_bitrate=320, 
 							   format="mp3",
 							   bitrate="{}k".format(bitrate),
 							   tags={"artist": "test"})
-						   
+	
 	return file_handle
