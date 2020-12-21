@@ -51,28 +51,41 @@ def change_speed(sound, speed=1.0):
 	return new.set_frame_rate(sound.frame_rate)
 
 
+def get_pitch(note):
+	key = note.key - 45
+	detune = note.pitch / 100
+	pitch = key + detune
+	return pitch
+
+
+def get_volume(note, layer):
+	layer_vol = layer.volume / 100
+	note_vol = note.velocity / 100
+	vol = layer_vol * note_vol
+	return vol
+
+
+def get_panning(note, layer):
+	layer_pan = layer.panning / 100
+	note_pan = note.panning / 100
+	if layer_pan == 0:
+		pan = note_pan
+	else:
+		pan = (layer_pan + note_pan) / 2
+	return pan
+
+
 def sort_notes(song):
 
 	notes = []
 	for note in song.notes:
 		layer = song.layers[note.layer]
 		
-		key = note.key - 45
-		detune = note.pitch / 100
-		pitch = key + detune
+		pitch = get_pitch(note)
+		volume = get_volume(note, layer)
+		panning = get_panning(note, layer)
 		
-		layer_vol = layer.volume / 100
-		note_vol = note.velocity / 100
-		vol = layer_vol * note_vol
-		
-		layer_pan = layer.panning / 100
-		note_pan = note.panning / 100
-		if layer_pan == 0:
-			pan = note_pan
-		else:
-			pan = (layer_pan + note_pan) / 2
-		
-		new = Note(note.tick, note.instrument, pitch, vol, pan)
+		new = Note(note.tick, note.instrument, pitch, volume, panning)
 		notes.append(new)
 	
 	return sorted(notes, key=lambda x: (x.instrument, x.pitch, x.volume, x.panning))
