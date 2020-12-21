@@ -1,6 +1,7 @@
 import os
 import pydub
 import pynbs
+import math
 
 
 SOUNDS_PATH = "sounds"
