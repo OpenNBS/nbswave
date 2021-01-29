@@ -3,6 +3,7 @@ import pydub
 import pynbs
 import math
 from collections import namedtuple
+import time
 
 
 SOUNDS_PATH = "sounds"
@@ -104,6 +105,8 @@ def sort_notes(song):
 
 def render_audio(song, output_path, loops=0, fadeout=False, target_bitrate=320, target_size=None):
 	
+	start = time.time()
+	
 	instruments = load_instruments()
 	
 	length = song.header.song_length / song.header.tempo * 1000
@@ -194,5 +197,10 @@ def render_audio(song, output_path, loops=0, fadeout=False, target_bitrate=320, 
 							   bitrate="{}k".format(bitrate),
 							   tags={"artist": "test"})
 	
+	end = time.time()
+	
+	with open("tests/log_{}.txt".format(os.path.basename(output_path)), 'w') as f:
+		f.write("Ins: {}\nKey: {}\nVol: {}\nPan: {}\n\nStart: {}\nEnd: {}\nTime elapsed: {}".format(ins_changes, key_changes, vol_changes, pan_changes, start, end, end-start))
+		
 	return file_handle
 	
