@@ -195,15 +195,16 @@ def render_audio(song, output_path, loops=0, fadeout=False, target_bitrate=320, 
 	else:
 		bitrate = target_bitrate
 	
-	file_handle = track.export(output_path,
+	outfile = track.export(output_path,
 							   format="mp3",
 							   bitrate="{}k".format(bitrate),
 							   tags={"artist": "test"})
+	
+	outfile.close()
 	
 	end = time.time()
 	
 	with open("tests/log_{}.txt".format(os.path.basename(output_path)), 'w') as f:
 		f.write("Ins: {}\nKey: {}\nVol: {}\nPan: {}\n\nStart: {}\nEnd: {}\nTime elapsed: {}".format(ins_changes, key_changes, vol_changes, pan_changes, start, end, end-start))
 		
-	return file_handle
 	
