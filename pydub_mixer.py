@@ -1,6 +1,7 @@
 from pydub import AudioSegment
 from pydub.utils import db_to_float
-import array
+import numpy as np
+
 
 class Mixer(object):
     def __init__(self):
@@ -27,13 +28,12 @@ class Mixer(object):
             offset + seg.frame_count()
             for offset, seg in parts
         )
-        return 1000.0 * frame_count / seg.frame_rate
+        return int(1000.0 * frame_count / seg.frame_rate)
         
     def append(self, sound):
         self.overlay(sound, position=len(self))
         
-    def to_audio_segment(self, gain=0):
-        samp_multiplier = db_to_float(gain)
+    def to_audio_segment(self):
         parts = self._sync()
         seg = parts[0][1]
         channels = seg.channels
@@ -44,11 +44,13 @@ class Mixer(object):
         )
         sample_count = int(frame_count * seg.channels)
         
-        output = array.array(seg.array_type, [0]*sample_count)
+        output = np.zeros(sample_count, dtype='int32')
         for offset, seg in parts:
             sample_offset = offset * channels
-            samples = seg.get_array_of_samples()
-            for i in range(len(samples)):
-                output[i+sample_offset] += int(samples[i] * samp_multiplier)
+            samples = np.frombuffer(seg.get_array_of_samples(), dtype='int16')
+            start = sample_offset
+            end = start + len(samples)
+            output[start:end] += samples
+        output = output.astype('int16')
         
         return seg._spawn(output)
