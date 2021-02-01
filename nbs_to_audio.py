@@ -1,5 +1,6 @@
 import os
 import pydub
+import pydub_mixer
 import pynbs
 import math
 from collections import namedtuple
@@ -43,6 +44,10 @@ def load_instruments():
 		segments.append(sound)
 
 	return segments
+	
+	
+def sync(sound, channels=2, frame_rate=44100, sample_width=2):
+	return sound.set_channels(channels).set_frame_rate(frame_rate).set_sample_width(sample_width)
 
 
 def change_speed(sound, speed=1.0):
@@ -112,6 +117,7 @@ def render_audio(song, output_path, loops=0, fadeout=False, target_bitrate=320, 
 	length = song.header.song_length / song.header.tempo * 1000
 	track = pydub.AudioSegment.silent(duration=length)
 	master_gain = -12.0
+	mixer = pydub_mixer.Mixer()
 	
 	last_ins = None
 	last_key = None
@@ -143,7 +149,7 @@ def render_audio(song, output_path, loops=0, fadeout=False, target_bitrate=320, 
 			last_vol = None
 			last_pan = None
 			sound1 = instruments[note.instrument]
-			sound1 = sound1.apply_gain(master_gain)
+			sound1 = sync(sound1.apply_gain(master_gain))
 			ins_changes += 1
 			
 		if key != last_key:
@@ -174,12 +180,9 @@ def render_audio(song, output_path, loops=0, fadeout=False, target_bitrate=320, 
 		
 		pos = note.tick / song.header.tempo * 1000
 		
-		# Ensure track is long enough to hold the note
-		diff = (pos + len(sound)) - len(track)
-		if diff > 0:
-			track = track + pydub.AudioSegment.silent(duration=diff)
-		
-		track = track.overlay(sound, position=pos)
+		mixer.overlay(sound, position=pos)
+	
+	track = mixer.to_audio_segment()
 	
 	# Normalize to -3 dBFS
 	track = track.normalize(headroom=0.0)
