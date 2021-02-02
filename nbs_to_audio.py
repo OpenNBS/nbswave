@@ -5,6 +5,7 @@ import pynbs
 import math
 from collections import namedtuple
 import time
+import zipfile
 
 
 SOUNDS_PATH = "sounds"
@@ -12,7 +13,8 @@ SOUNDS_PATH = "sounds"
 Note = namedtuple('Note', 'tick layer instrument pitch volume panning')
 
 
-instruments = [
+
+default_instruments = [
 	"harp.ogg",
 	"dbass.ogg",
 	"bdrum.ogg",
@@ -33,16 +35,27 @@ instruments = [
 
 
 def load_sound(path):
-	return pydub.AudioSegment.from_file(path, format='ogg')
+	return pydub.AudioSegment.from_file(path)
 
 
-def load_instruments():
+def load_instruments(song, path):
 	segments = []
-	for ins in instruments:
+	
+	for ins in default_instruments:
 		filename = os.path.join(os.getcwd(), SOUNDS_PATH, ins)
 		sound = load_sound(filename)
 		segments.append(sound)
-
+		
+	for ins in song.instruments:
+		print(ins)
+		if os.path.splitext(path)[1] == '.zip':
+			zip_file = zipfile.ZipFile(path, 'r')
+			file = zip_file.read(ins.file)
+		else:
+			file = os.path.join(path, ins.file)
+		sound = load_sound(file)
+		segments.append(sound)
+	
 	return segments
 	
 	
@@ -108,11 +121,11 @@ def sort_notes(song):
 	return sorted(notes, key=lambda x: (x.pitch, x.instrument, x.volume, x.panning))
 	
 
-def render_audio(song, output_path, loops=0, fadeout=False, target_bitrate=320, target_size=None):
+def render_audio(song, output_path, custom_sound_path=SOUNDS_PATH, loops=0, fadeout=False, target_bitrate=320, target_size=None):
 	
 	start = time.time()
 	
-	instruments = load_instruments()
+	instruments = load_instruments(song, custom_sound_path)
 	
 	length = song.header.song_length / song.header.tempo * 1000
 	track = pydub.AudioSegment.silent(duration=length)
@@ -131,9 +144,6 @@ def render_audio(song, output_path, loops=0, fadeout=False, target_bitrate=320, 
 	
 	sorted_notes = sort_notes(song)
 	for i, note in enumerate(sorted_notes):
-		
-		if note.instrument > song.header.default_instruments - 1:
-			continue
 		
 		ins = note.instrument
 		key = note.pitch
