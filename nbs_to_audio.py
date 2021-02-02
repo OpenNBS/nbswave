@@ -129,7 +129,6 @@ def render_audio(song, output_path, custom_sound_path=SOUNDS_PATH, loops=0, fade
 	
 	length = song.header.song_length / song.header.tempo * 1000
 	track = pydub.AudioSegment.silent(duration=length)
-	master_gain = -12.0
 	mixer = pydub_mixer.Mixer()
 	
 	last_ins = None
@@ -159,7 +158,7 @@ def render_audio(song, output_path, custom_sound_path=SOUNDS_PATH, loops=0, fade
 			last_vol = None
 			last_pan = None
 			sound1 = instruments[note.instrument]
-			sound1 = sync(sound1.apply_gain(master_gain))
+			sound1 = sync(sound1)
 			ins_changes += 1
 			
 		if key != last_key:
@@ -193,9 +192,6 @@ def render_audio(song, output_path, custom_sound_path=SOUNDS_PATH, loops=0, fade
 		mixer.overlay(sound, position=pos)
 	
 	track = mixer.to_audio_segment()
-	
-	# Normalize to -3 dBFS
-	track = track.normalize(headroom=0.0)
 	
 	seconds = track.duration_seconds
 	

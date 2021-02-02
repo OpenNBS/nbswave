@@ -51,6 +51,5 @@ class Mixer(object):
             start = sample_offset
             end = start + len(samples)
             output[start:end] += samples
-        output = output.astype('int16')
         
-        return seg._spawn(output)
+        return seg._spawn(output, overrides={'sample_width': 4}).normalize(headroom=0.0)
