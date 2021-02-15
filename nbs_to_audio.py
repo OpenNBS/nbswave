@@ -46,7 +46,7 @@ def load_instruments(song, path):
 		filename = os.path.join(os.getcwd(), SOUNDS_PATH, ins)
 		sound = load_sound(filename)
 		segments.append(sound)
-		
+	
 	zip_file = None
 	for ins in song.instruments:
 		# ZipFile object
@@ -80,7 +80,6 @@ def change_speed(sound, speed=1.0):
 	new = sound._spawn(sound.raw_data, overrides={
 								"frame_rate": int(sound.frame_rate * speed)
 							})
-	
 	return new.set_frame_rate(sound.frame_rate)
 
 
@@ -117,7 +116,6 @@ def vol_to_gain(vol):
 
 
 def sort_notes(song):
-
 	notes = []
 	for note in song.notes:
 		layer = song.layers[note.layer]
@@ -223,5 +221,3 @@ def render_audio(song, output_path, custom_sound_path=SOUNDS_PATH, loops=0, fade
 	
 	with open("tests/log_{}.txt".format(os.path.basename(output_path)), 'w') as f:
 		f.write("Ins: {}\nKey: {}\nVol: {}\nPan: {}\n\nStart: {}\nEnd: {}\nTime elapsed: {}".format(ins_changes, key_changes, vol_changes, pan_changes, start, end, end-start))
-		
-	
