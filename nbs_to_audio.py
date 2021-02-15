@@ -6,6 +6,7 @@ import math
 from collections import namedtuple
 import time
 import zipfile
+import io
 
 
 SOUNDS_PATH = "sounds"
@@ -46,15 +47,24 @@ def load_instruments(song, path):
 		sound = load_sound(filename)
 		segments.append(sound)
 		
+	zip_file = None
 	for ins in song.instruments:
-		print(ins)
-		if os.path.splitext(path)[1] == '.zip':
+		# ZipFile object
+		if isinstance(path, zipfile.ZipFile):
+			zip_file = path
+			file = io.BytesIO(zip_file.read(ins.file))
+		# File-like object
+		elif isinstance(path, str) and os.path.splitext(path)[1] == '.zip':
 			zip_file = zipfile.ZipFile(path, 'r')
-			file = zip_file.read(ins.file)
+			file = io.BytesIO(zip_file.read(ins.file))
+		# File path
 		else:
 			file = os.path.join(path, ins.file)
 		sound = load_sound(file)
 		segments.append(sound)
+	
+	if zip_file is not None:
+		zip_file.close()
 	
 	return segments
 	
