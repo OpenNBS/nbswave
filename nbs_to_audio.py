@@ -64,7 +64,8 @@ def sync(sound, channels=2, frame_rate=44100, sample_width=2):
 
 
 def change_speed(sound, speed=1.0):
-	# From: https://stackoverflow.com/a/51434954/9045426
+	if speed == 1.0:
+		return sound
 	
 	new = sound._spawn(sound.raw_data, overrides={
 								"frame_rate": int(sound.frame_rate * speed)
