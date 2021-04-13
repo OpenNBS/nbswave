@@ -104,6 +104,10 @@ class Note(pynbs.Note):
     """A subclass of Note in which the compensated pitch,
     volume and panning values are calculated automatically."""
 
+    def __init__(self, layer):
+        weighted_values = self.apply_layer_weight(layer)
+        self.pitch, self.volume, self.panning = weighted_values
+
     def get_pitch(self):
         """Returns the detune-aware pitch of this note."""
         key = self.key - 45
@@ -133,9 +137,7 @@ class Note(pynbs.Note):
         pitch = self.get_pitch()
         volume = self.get_volume(layer)
         panning = self.get_panning(layer)
-        return self.__class__(
-            self.tick, self.layer, self.instrument, pitch, volume, panning
-        )
+        return pitch, volume, panning
 
 
 class Song(pynbs.File):
