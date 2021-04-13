@@ -101,12 +101,8 @@ def vol_to_gain(vol):
 
 
 class Note(pynbs.Note):
-    """A subclass of Note in which the compensated pitch,
-    volume and panning values are calculated automatically."""
-
-    def __init__(self, layer):
-        weighted_values = self._apply_layer_weight(layer)
-        self.pitch, self.volume, self.panning = weighted_values
+    """Extends pynbs.Note with extra functionality to calculate
+    the compensated pitch, volume and panning values."""
 
     def move(self, offset: int):
         """Return this note moved by a certain amount of ticks."""
@@ -114,12 +110,12 @@ class Note(pynbs.Note):
         new_note.tick = self.tick + offset
         return new_note
 
-    def _apply_layer_weight(self, layer: pynbs.Layer):
+    def apply_layer_weight(self, layer: pynbs.Layer):
         """Returns a new Note object with compensated pitch, volume and panning."""
         pitch = self._get_pitch()
         volume = self._get_volume(layer)
         panning = self._get_panning(layer)
-        return pitch, volume, panning
+        return self.__class__(self.tick, self.layer, self.instrument, pitch, volume, panning)
 
     def _get_pitch(self):
         """Returns the detune-aware pitch of this note."""
@@ -175,6 +171,9 @@ class Song(pynbs.File):
         else:
             raise TypeError("Index must be an integer")
         return list(section)
+
+    def weighted_notes():
+        return [note.apply_layer_weight(self.layers[note.layer]) for note in song.notes]
 
     def notes_by_layer(self, group_by_name=False):
         """Returns a dict of lists containing the notes in each non-empty layer of the song."""
