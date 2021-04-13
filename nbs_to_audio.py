@@ -11,8 +11,6 @@ import io
 
 SOUNDS_PATH = "sounds"
 
-Note = namedtuple("Note", "tick layer instrument pitch volume panning")
-
 
 default_instruments = [
     "harp.ogg",
@@ -86,30 +84,6 @@ def change_speed(sound, speed=1.0):
     return new.set_frame_rate(sound.frame_rate)
 
 
-def get_pitch(note):
-    key = note.key - 45
-    detune = note.pitch / 100
-    pitch = key + detune
-    return pitch
-
-
-def get_volume(note, layer):
-    layer_vol = layer.volume / 100
-    note_vol = note.velocity / 100
-    vol = layer_vol * note_vol
-    return vol
-
-
-def get_panning(note, layer):
-    layer_pan = layer.panning / 100
-    note_pan = note.panning / 100
-    if layer_pan == 0:
-        pan = note_pan
-    else:
-        pan = (layer_pan + note_pan) / 2
-    return pan
-
-
 def key_to_pitch(key):
     return 2 ** ((key) / 12)
 
@@ -118,19 +92,96 @@ def vol_to_gain(vol):
     return math.log(max(vol, 0.0001), 10) * 20
 
 
-def sort_notes(song):
-    notes = []
-    for note in song.notes:
+class Song(pynbs.File):
+    """Extends the pynbs.Song class with some extra functionality."""
+
+    def __init__(self):
+        super().__init__()
+
+    def get_pitch(self, note):
+        """Returns the detune-aware pitch for a note in the song."""
+        key = note.key - 45
+        detune = note.pitch / 100
+        pitch = key + detune
+        return pitch
+
+    def get_volume(self, note, layer):
+        """Returns the layer-aware volume for a note in the song."""
+        layer_vol = layer.volume / 100
+        note_vol = note.velocity / 100
+        vol = layer_vol * note_vol
+        return vol
+
+    def get_panning(self, note, layer):
+        """Returns the layer-aware panning for a note in the song."""
+        layer_pan = layer.panning / 100
+        note_pan = note.panning / 100
+        if layer_pan == 0:
+            pan = note_pan
+        else:
+            pan = (layer_pan + note_pan) / 2
+        return pan
+
+    def get_layer_weighted_note(self, note):
         layer = song.layers[note.layer]
+        pitch = self.get_pitch(note)
+        volume = self.get_volume(note)
+        panning = self.get_panning(note)
 
-        pitch = get_pitch(note)
-        volume = get_volume(note, layer)
-        panning = get_panning(note, layer)
+    def move_note(self, note, offset):
+        """Return the same note moved by a certain amount of ticks."""
+        new_note = note
+        new_note.tick = note.tick + offset
+        return new_note
 
-        new = Note(note.tick, note.layer, note.instrument, pitch, volume, panning)
-        notes.append(new)
+    def __len__(self):
+        """Returns the length of the song, in ticks."""
+        if self.header.version in (1, 2):
+            length = max((note.pitch for note in self.notes))
+        else:
+            length = self.header.song_length
+        return length
 
-    return sorted(notes, key=lambda x: (x.pitch, x.instrument, x.volume, x.panning))
+    def duration(self, slice):
+        """Returns the duration of the song, in milliseconds."""
+        # TODO: Make this a @property
+        return len(self) / self.header.tempo * 1000
+
+    def __getitem__(self, key):
+        if isinstance(key, int):
+            section = [note for note in self.notes if note.tick == key]
+        elif isinstance(key, slice):
+            section = [
+                note for note in self.notes if note.tick > start and note.tick < stop
+            ]
+        else:
+            raise TypeError("Index must be an integer")
+        return list(section)
+
+    def notes_by_layer(self, group_by_name=False):
+        """Returns a dict of lists containing the notes in each non-empty layer of the song."""
+        pass
+
+    def loop(self, count):
+        start = self.header.loop_start_tick
+        notes = self[start:]
+        end = len(song)
+        for i in range(count):
+            offset = len(song) - start
+            notes = [self.move_note(note, offset) for note in self.notes]
+            self.notes.extend(notes)
+
+    def sorted_notes(self):
+        notes = (self.get_layer_weighted_note(note) for note in song.notes)
+        return sorted(notes, key=lambda x: (x.pitch, x.instrument, x.volume, x.panning))
+
+
+class SongRenderer:
+    def __init__(self, song, output_path, default_sound):
+        pass
+
+    def export():
+        pass
 
 
 def render_audio(
@@ -147,7 +198,7 @@ def render_audio(
 
     instruments = load_instruments(song, custom_sound_path)
 
-    length = song.header.song_length / song.header.tempo * 1000
+    length = len(song)
     track = pydub.AudioSegment.silent(duration=length)
     mixer = pydub_mixer.Mixer()
 
