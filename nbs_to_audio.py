@@ -100,41 +100,49 @@ def vol_to_gain(vol):
     return math.log(max(vol, 0.0001), 10) * 20
 
 
-class Song(pynbs.File):
-    """Extends the pynbs.Song class with some extra functionality."""
+class Note(pynbs.Note):
+    """A subclass of Note in which the compensated pitch,
+    volume and panning values are calculated automatically."""
 
-    def __init__(self):
-        super().__init__()
-
-    def get_pitch(self, note):
-        """Returns the detune-aware pitch for a note in the song."""
-        key = note.key - 45
-        detune = note.pitch / 100
+    def get_pitch(self):
+        """Returns the detune-aware pitch of this note."""
+        key = self.key - 45
+        detune = self.pitch / 100
         pitch = key + detune
         return pitch
 
-    def get_volume(self, note, layer):
-        """Returns the layer-aware volume for a note in the song."""
+    def get_volume(self, layer):
+        """Returns the layer-aware volume of this note."""
         layer_vol = layer.volume / 100
-        note_vol = note.velocity / 100
+        note_vol = self.velocity / 100
         vol = layer_vol * note_vol
         return vol
 
-    def get_panning(self, note, layer):
-        """Returns the layer-aware panning for a note in the song."""
+    def get_panning(self, layer):
+        """Returns the layer-aware panning of this note."""
         layer_pan = layer.panning / 100
-        note_pan = note.panning / 100
+        note_pan = self.panning / 100
         if layer_pan == 0:
             pan = note_pan
         else:
             pan = (layer_pan + note_pan) / 2
         return pan
 
-    def get_layer_weighted_note(self, note):
-        layer = song.layers[note.layer]
-        pitch = self.get_pitch(note)
-        volume = self.get_volume(note)
-        panning = self.get_panning(note)
+    def apply_layer_weight(self, layer: pynbs.Layer):
+        """Returns a new Note object with compensated pitch, volume and panning."""
+        pitch = self.get_pitch()
+        volume = self.get_volume(layer)
+        panning = self.get_panning(layer)
+        return self.__class__(
+            self.tick, self.layer, self.instrument, pitch, volume, panning
+        )
+
+
+class Song(pynbs.File):
+    """Extends the pynbs.Song class with extra functionality."""
+
+    def __init__(self):
+        super().__init__()
 
     def move_note(self, note, offset):
         """Return the same note moved by a certain amount of ticks."""
