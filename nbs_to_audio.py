@@ -108,6 +108,12 @@ class Note(pynbs.Note):
         weighted_values = self._apply_layer_weight(layer)
         self.pitch, self.volume, self.panning = weighted_values
 
+    def move(self, offset: int):
+        """Return this note moved by a certain amount of ticks."""
+        new_note = self
+        new_note.tick = self.tick + offset
+        return new_note
+
     def _apply_layer_weight(self, layer: pynbs.Layer):
         """Returns a new Note object with compensated pitch, volume and panning."""
         pitch = self._get_pitch()
@@ -145,12 +151,6 @@ class Song(pynbs.File):
 
     def __init__(self):
         super().__init__()
-
-    def move_note(self, note, offset):
-        """Return the same note moved by a certain amount of ticks."""
-        new_note = note
-        new_note.tick = note.tick + offset
-        return new_note
 
     def __len__(self):
         """Returns the length of the song, in ticks."""
