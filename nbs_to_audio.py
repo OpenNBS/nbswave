@@ -1,3 +1,11 @@
+# TODO:
+# Add progress reports
+# Add logging
+# Add looping
+# Add fadeout
+# Allow exporting layers separately. grouping layers with the same name
+# Add different naming conventions for layers
+
 import os
 import pydub
 import pydub_mixer
