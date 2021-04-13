@@ -105,24 +105,31 @@ class Note(pynbs.Note):
     volume and panning values are calculated automatically."""
 
     def __init__(self, layer):
-        weighted_values = self.apply_layer_weight(layer)
+        weighted_values = self._apply_layer_weight(layer)
         self.pitch, self.volume, self.panning = weighted_values
 
-    def get_pitch(self):
+    def _apply_layer_weight(self, layer: pynbs.Layer):
+        """Returns a new Note object with compensated pitch, volume and panning."""
+        pitch = self._get_pitch()
+        volume = self._get_volume(layer)
+        panning = self._get_panning(layer)
+        return pitch, volume, panning
+
+    def _get_pitch(self):
         """Returns the detune-aware pitch of this note."""
         key = self.key - 45
         detune = self.pitch / 100
         pitch = key + detune
         return pitch
 
-    def get_volume(self, layer):
+    def _get_volume(self, layer):
         """Returns the layer-aware volume of this note."""
         layer_vol = layer.volume / 100
         note_vol = self.velocity / 100
         vol = layer_vol * note_vol
         return vol
 
-    def get_panning(self, layer):
+    def _get_panning(self, layer):
         """Returns the layer-aware panning of this note."""
         layer_pan = layer.panning / 100
         note_pan = self.panning / 100
@@ -131,13 +138,6 @@ class Note(pynbs.Note):
         else:
             pan = (layer_pan + note_pan) / 2
         return pan
-
-    def apply_layer_weight(self, layer: pynbs.Layer):
-        """Returns a new Note object with compensated pitch, volume and panning."""
-        pitch = self.get_pitch()
-        volume = self.get_volume(layer)
-        panning = self.get_panning(layer)
-        return pitch, volume, panning
 
 
 class Song(pynbs.File):
@@ -190,7 +190,9 @@ class Song(pynbs.File):
             self.notes.extend(notes)
 
     def sorted_notes(self):
-        notes = (self.get_layer_weighted_note(note) for note in song.notes)
+        notes = (
+            note.apply_layer_weight(self.layers[note.layer]) for note in song.notes
+        )
         return sorted(notes, key=lambda x: (x.pitch, x.instrument, x.volume, x.panning))
 
 
