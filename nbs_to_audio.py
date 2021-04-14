@@ -156,10 +156,14 @@ class Song(pynbs.File):
             length = self.header.song_length
         return length
 
-    def duration(self, slice):
-        """Returns the duration of the song, in milliseconds."""
-        # TODO: Make this a @property
-        return len(self) / self.header.tempo * 1000
+    @property
+    def duration(self):
+        """Returns the duration of the song, in seconds."""
+        return self._duration
+
+    @duration.getter
+    def duration(self):
+        self._duration = len(self) / self.header.tempo * 1000
 
     def __getitem__(self, key):
         if isinstance(key, int):
