@@ -174,13 +174,35 @@ class Song(pynbs.File):
 
     def weighted_notes():
         return [note.apply_layer_weight(self.layers[note.layer]) for note in song.notes]
+    def layer_groups(self):
+        groups = {}
+        for layer in self.layers:
+            name = layer.name
+            if name not in groups:
+                group[name] = []
+            else:
+                group[name].append(layer.id)
+        return groups
 
     def notes_by_layer(self, group_by_name=False):
         """Returns a dict of lists containing the notes in each non-empty layer of the song."""
-        pass
+        layers = {}
+        for note in self.weighted_notes():
+            layer = self.layers[note.layer]
+            if group_by_name:
+                group = layer.name
+            else:
+                group = layer.id + " " + layer.name
+                if group not in layers:
+                    layers[group] = []
+                layers[group].append(note)
+        return layers
 
-    def loop(self, count):
-        start = self.header.loop_start_tick
+        if group_by_name:
+            # Complexity of O(n^2). Consider iterating notes once grouping them into layer groups
+            for name, layers in self.layer_groups():
+                notes = filter(lambda note: note.layer in layers, self.weighted_notes())
+
         notes = self[start:]
         end = len(song)
         for i in range(count):
