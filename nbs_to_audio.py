@@ -177,7 +177,10 @@ class Song(pynbs.File):
         return list(section)
 
     def weighted_notes():
-        return [note.apply_layer_weight(self.layers[note.layer]) for note in song.notes]
+        # TODO: Consider calculating this automatically upon initializing the song, to avoid recalculating?
+        # Except I don't want to destroy the original song data.
+        return (note.apply_layer_weight(self.layers[note.layer]) for note in song.notes)
+
     def layer_groups(self):
         groups = {}
         for layer in self.layers:
