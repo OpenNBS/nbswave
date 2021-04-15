@@ -210,12 +210,18 @@ class Song(pynbs.File):
             for name, layers in self.layer_groups():
                 notes = filter(lambda note: note.layer in layers, self.weighted_notes())
 
+    def loop(self, count: int, start=None: int):
+        """Returns this song looped 'count' times with an optional loop start tick
+        (if not provided, defaults to the start tick defined in the song)."""
+        if start is None:
+            start = self.header.loop_start_tick
         notes = self[start:]
-        end = len(song)
-        for i in range(count):
-            offset = len(song) - start
-            notes = [self.move_note(note, offset) for note in self.notes]
-            self.notes.extend(notes)
+        new_song = self
+        for i in range(1, count):
+            offset = (len(self) - start) * i
+            notes = (note.move_note(note, offset) for note in self.notes)
+            new_song.notes.extend(notes)
+        return new_song
 
     def sorted_notes(self):
         notes = (
