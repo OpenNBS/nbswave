@@ -5,6 +5,7 @@
 # Add fadeout
 # Allow exporting layers separately. grouping layers with the same name
 # Add different naming conventions for layers
+# Prevent normalization making output gain too low when song clips
 
 import os
 import pydub
@@ -107,7 +108,7 @@ class Note(pynbs.Note):
     def move(self, offset: int):
         """Return this note moved by a certain amount of ticks."""
         new_note = self
-        new_note.tick = self.tick + offset
+        new_note.tick += offset
         return new_note
 
     def apply_layer_weight(self, layer: pynbs.Layer):
@@ -241,10 +242,17 @@ class SongRenderer:
 def render_audio(
     song,
     output_path,
+    default_sound_path=None,
     custom_sound_path=SOUNDS_PATH,
+    start=None,
+    end=None,
     loops=0,
-    fadeout=False,
-    target_bitrate=320,
+    fadeout=0,
+    format="wav",
+    sample_rate=44100,
+    channels=2,
+    bit_depth=24,
+    bitrate=320,
     target_size=None,
 ):
 
