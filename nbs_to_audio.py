@@ -146,27 +146,17 @@ class Note(pynbs.Note):
 class Song(pynbs.File):
     """Extends the pynbs.Song class with extra functionality."""
 
-    def __init__(self):
-        super().__init__()
-
     def __len__(self):
         """Returns the length of the song, in ticks."""
-        if self.header.version in (1, 2):
+        if self.header.version == 1 or self.header.version == 2:
+            # Length isn't correct in version 1 and 2 songs, so we need this workaround
             length = max((note.pitch for note in self.notes))
         else:
             length = self.header.song_length
         return length
 
-    @property
-    def duration(self):
-        """Returns the duration of the song, in seconds."""
-        return self._duration
-
-    @duration.getter
-    def duration(self):
-        self._duration = len(self) / self.header.tempo * 1000
-
     def __getitem__(self, key):
+        """Returns the notes in a certain section (vertical slice) of the song."""
         if isinstance(key, int):
             section = [note for note in self.notes if note.tick == key]
         elif isinstance(key, slice):
@@ -176,6 +166,15 @@ class Song(pynbs.File):
         else:
             raise TypeError("Index must be an integer")
         return list(section)
+
+    @property
+    def duration(self):
+        return self._duration
+        """The duration of the song, in seconds."""
+
+    @duration.getter
+    def duration(self):
+        self._duration = len(self) / self.header.tempo * 1000
 
     def weighted_notes():
         # TODO: Consider calculating this automatically upon initializing the song, to avoid recalculating?
