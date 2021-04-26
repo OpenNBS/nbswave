@@ -231,11 +231,18 @@ class Song(pynbs.File):
         return sorted(notes, key=lambda x: (x.pitch, x.instrument, x.volume, x.panning))
 
 
-class SongRenderer:
+class SongRenderer():
     def __init__(self, song, output_path, default_sound):
         pass
 
-    def export():
+    def missing_instruments():
+        missing = []
+        for instrument in self.song.instruments:
+
+    def render_audio():
+        pass
+
+    def export(filename, format="wav", sample_rate=44100, channels=2, bit_depth=24, bitrate=320, target_size=None):
         pass
 
 
