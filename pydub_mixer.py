@@ -1,5 +1,5 @@
-from pydub import AudioSegment
 import numpy as np
+from pydub import AudioSegment
 
 
 class Mixer(object):

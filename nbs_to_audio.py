@@ -7,17 +7,19 @@
 # Add different naming conventions for layers
 # Prevent normalization making output gain too low when song clips
 
-import os
-from typing import BinaryIO, Iterator, Union
-import pydub
-import pydub_mixer
-import pynbs
-import math
-import time
-import zipfile
-import io
 from __future__ import annotations
 
+import io
+import math
+import os
+import time
+import zipfile
+from typing import BinaryIO, Iterator, Union
+
+import pydub
+import pynbs
+
+import pydub_mixer
 
 SOUNDS_PATH = "sounds"
 
@@ -46,7 +48,9 @@ def load_sound(path) -> pydub.AudioSegment:
     return pydub.AudioSegment.from_file(path)
 
 
-def load_instruments(song, path: Union(str, zipfile.ZipFile, BinaryIO)) -> list[pydub.AudioSegment]:
+def load_instruments(
+    song, path: Union(str, zipfile.ZipFile, BinaryIO)
+) -> list[pydub.AudioSegment]:
     segments = []
 
     for ins in default_instruments:
@@ -76,7 +80,9 @@ def load_instruments(song, path: Union(str, zipfile.ZipFile, BinaryIO)) -> list[
     return segments
 
 
-def sync(sound, channels: int=2, frame_rate: int=44100, sample_width: int=2) -> pydub.AudioSegment:
+def sync(
+    sound, channels: int = 2, frame_rate: int = 44100, sample_width: int = 2
+) -> pydub.AudioSegment:
     return (
         sound.set_channels(channels)
         .set_frame_rate(frame_rate)
@@ -84,7 +90,7 @@ def sync(sound, channels: int=2, frame_rate: int=44100, sample_width: int=2) -> 
     )
 
 
-def change_speed(sound, speed: int=1.0) -> pydub.AudioSegment:
+def change_speed(sound, speed: int = 1.0) -> pydub.AudioSegment:
     if speed == 1.0:
         return sound
 
@@ -117,7 +123,9 @@ class Note(pynbs.Note):
         pitch = self._get_pitch()
         volume = self._get_volume(layer)
         panning = self._get_panning(layer)
-        return self.__class__(self.tick, self.layer, self.instrument, pitch, volume, panning)
+        return self.__class__(
+            self.tick, self.layer, self.instrument, pitch, volume, panning
+        )
 
     def _get_pitch(self) -> float:
         """Returns the detune-aware pitch of this note."""
@@ -164,7 +172,9 @@ class Song(pynbs.File):
             start = key.start if key.start is not None else 0
             stop = key.stop if key.stop is not None else len(self)
             section = [
-                note for note in self.notes if note.tick > slice.start and note.tick < slice.stop
+                note
+                for note in self.notes
+                if note.tick > slice.start and note.tick < slice.stop
             ]
         else:
             raise TypeError("Index must be an integer")
@@ -213,7 +223,7 @@ class Song(pynbs.File):
             for name, layers in self.layer_groups():
                 notes = filter(lambda note: note.layer in layers, self.weighted_notes())
 
-    def loop(self, count: int, start: int=None) -> Song:
+    def loop(self, count: int, start: int = None) -> Song:
         """Return this song looped 'count' times with an optional loop start tick
         (if not provided, defaults to the start tick defined in the song)."""
         if start is None:
@@ -233,7 +243,7 @@ class Song(pynbs.File):
         return sorted(notes, key=lambda x: (x.pitch, x.instrument, x.volume, x.panning))
 
 
-class SongRenderer():
+class SongRenderer:
     def __init__(self, song, output_path, default_sound):
         pass
 
@@ -245,25 +255,34 @@ class SongRenderer():
     def render_audio(self):
         pass
 
-    def export(self, filename: str, format: str="wav", sample_rate:int=44100, channels: int=2, bit_depth: int=24, bitrate: int=320, target_size: int=None):
+    def export(
+        self,
+        filename: str,
+        format: str = "wav",
+        sample_rate: int = 44100,
+        channels: int = 2,
+        bit_depth: int = 24,
+        bitrate: int = 320,
+        target_size: int = None,
+    ):
         pass
 
 
 def render_audio(
     song: pynbs.Song,
     output_path: str,
-    default_sound_path: str=None,
-    custom_sound_path: str=SOUNDS_PATH,
-    start: int=None,
-    end: int=None,
-    loops: int=0,
-    fadeout: Union[int, float]=0,
-    format: str="wav",
-    sample_rate: int=44100,
-    channels: int=2,
-    bit_depth: int=24,
-    target_bitrate: int=320,
-    target_size: int=None,
+    default_sound_path: str = None,
+    custom_sound_path: str = SOUNDS_PATH,
+    start: int = None,
+    end: int = None,
+    loops: int = 0,
+    fadeout: Union[int, float] = 0,
+    format: str = "wav",
+    sample_rate: int = 44100,
+    channels: int = 2,
+    bit_depth: int = 24,
+    target_bitrate: int = 320,
+    target_size: int = None,
 ):
 
     start = time.time()
@@ -371,4 +390,3 @@ def render_audio(
                 end - start,
             )
         )
-
