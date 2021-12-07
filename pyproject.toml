@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "nbs-audio"
+version = "0.1.0"
+description = "An utility to render note block songs to a variety of audio formats"
+authors = ["Bentroen <bemcdc@gmail.com>"]
+license = "MIT"
+
+[tool.poetry.dependencies]
+python = ">=3.7, <3.11"
+pydub = "^0.25.1"
+pynbs = "^0.4.2"
+numpy = "^1.21.4"
+
+[tool.poetry.dev-dependencies]
+black = "^21.12b0"
+isort = "^5.10.1"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
