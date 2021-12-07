@@ -13,7 +13,6 @@ import pydub
 import pydub_mixer
 import pynbs
 import math
-from collections import namedtuple
 import time
 import zipfile
 import io
@@ -162,8 +161,10 @@ class Song(pynbs.File):
         if isinstance(key, int):
             section = [note for note in self.notes if note.tick == key]
         elif isinstance(key, slice):
+            start = key.start if key.start is not None else 0
+            stop = key.stop if key.stop is not None else len(self)
             section = [
-                note for note in self.notes if note.tick > start and note.tick < stop
+                note for note in self.notes if note.tick > slice.start and note.tick < slice.stop
             ]
         else:
             raise TypeError("Index must be an integer")
@@ -181,16 +182,16 @@ class Song(pynbs.File):
     def weighted_notes(self) -> Iterator[Note]:
         # TODO: Consider calculating this automatically upon initializing the song, to avoid recalculating?
         # Except I don't want to destroy the original song data.
-        return (note.apply_layer_weight(self.layers[note.layer]) for note in song.notes)
+        return (note.apply_layer_weight(self.layers[note.layer]) for note in self.notes)
 
     def layer_groups(self):
         groups = {}
         for layer in self.layers:
             name = layer.name
             if name not in groups:
-                group[name] = []
+                groups[name] = []
             else:
-                group[name].append(layer.id)
+                groups[name].append(layer.id)
         return groups
 
     def notes_by_layer(self, group_by_name=False) -> dict[str, list[Note]]:
@@ -212,8 +213,8 @@ class Song(pynbs.File):
             for name, layers in self.layer_groups():
                 notes = filter(lambda note: note.layer in layers, self.weighted_notes())
 
-        """Returns this song looped 'count' times with an optional loop start tick
     def loop(self, count: int, start: int=None) -> Song:
+        """Return this song looped 'count' times with an optional loop start tick
         (if not provided, defaults to the start tick defined in the song)."""
         if start is None:
             start = self.header.loop_start_tick
@@ -227,7 +228,7 @@ class Song(pynbs.File):
 
     def sorted_notes(self) -> list[Note]:
         notes = (
-            note.apply_layer_weight(self.layers[note.layer]) for note in song.notes
+            note.apply_layer_weight(self.layers[note.layer]) for note in self.notes
         )
         return sorted(notes, key=lambda x: (x.pitch, x.instrument, x.volume, x.panning))
 
@@ -244,7 +245,7 @@ class SongRenderer():
     def render_audio(self):
         pass
 
-    def export(filename, format: str="wav", sample_rate:int=44100, channels: int=2, bit_depth: int=24, bitrate: int=320, target_size: int=None):
+    def export(self, filename: str, format: str="wav", sample_rate:int=44100, channels: int=2, bit_depth: int=24, bitrate: int=320, target_size: int=None):
         pass
 
 
@@ -261,7 +262,7 @@ def render_audio(
     sample_rate: int=44100,
     channels: int=2,
     bit_depth: int=24,
-    bitrate: int=320,
+    target_bitrate: int=320,
     target_size: int=None,
 ):
 
@@ -283,7 +284,7 @@ def render_audio(
     vol_changes = 0
     pan_changes = 0
 
-    sorted_notes = sort_notes(song)
+    sorted_notes = song.sorted_notes()
     for i, note in enumerate(sorted_notes):
 
         ins = note.instrument
