@@ -8,6 +8,7 @@
 # Prevent normalization making output gain too low when song clips
 
 import os
+from typing import BinaryIO, Iterator, Union
 import pydub
 import pydub_mixer
 import pynbs
@@ -16,6 +17,7 @@ from collections import namedtuple
 import time
 import zipfile
 import io
+from __future__ import annotations
 
 
 SOUNDS_PATH = "sounds"
@@ -41,11 +43,11 @@ default_instruments = [
 ]
 
 
-def load_sound(path):
+def load_sound(path) -> pydub.AudioSegment:
     return pydub.AudioSegment.from_file(path)
 
 
-def load_instruments(song, path):
+def load_instruments(song, path: Union(str, zipfile.ZipFile, BinaryIO)) -> list[pydub.AudioSegment]:
     segments = []
 
     for ins in default_instruments:
@@ -75,7 +77,7 @@ def load_instruments(song, path):
     return segments
 
 
-def sync(sound, channels=2, frame_rate=44100, sample_width=2):
+def sync(sound, channels: int=2, frame_rate: int=44100, sample_width: int=2) -> pydub.AudioSegment:
     return (
         sound.set_channels(channels)
         .set_frame_rate(frame_rate)
@@ -83,7 +85,7 @@ def sync(sound, channels=2, frame_rate=44100, sample_width=2):
     )
 
 
-def change_speed(sound, speed=1.0):
+def change_speed(sound, speed: int=1.0) -> pydub.AudioSegment:
     if speed == 1.0:
         return sound
 
@@ -93,11 +95,11 @@ def change_speed(sound, speed=1.0):
     return new.set_frame_rate(sound.frame_rate)
 
 
-def key_to_pitch(key):
+def key_to_pitch(key: int) -> float:
     return 2 ** ((key) / 12)
 
 
-def vol_to_gain(vol):
+def vol_to_gain(vol: float) -> float:
     return math.log(max(vol, 0.0001), 10) * 20
 
 
@@ -105,34 +107,34 @@ class Note(pynbs.Note):
     """Extends pynbs.Note with extra functionality to calculate
     the compensated pitch, volume and panning values."""
 
-    def move(self, offset: int):
+    def move(self, offset: int) -> Note:
         """Return this note moved by a certain amount of ticks."""
         new_note = self
         new_note.tick += offset
         return new_note
 
-    def apply_layer_weight(self, layer: pynbs.Layer):
+    def apply_layer_weight(self, layer: pynbs.Layer) -> Note:
         """Returns a new Note object with compensated pitch, volume and panning."""
         pitch = self._get_pitch()
         volume = self._get_volume(layer)
         panning = self._get_panning(layer)
         return self.__class__(self.tick, self.layer, self.instrument, pitch, volume, panning)
 
-    def _get_pitch(self):
+    def _get_pitch(self) -> float:
         """Returns the detune-aware pitch of this note."""
         key = self.key - 45
         detune = self.pitch / 100
         pitch = key + detune
         return pitch
 
-    def _get_volume(self, layer):
+    def _get_volume(self, layer: int) -> float:
         """Returns the layer-aware volume of this note."""
         layer_vol = layer.volume / 100
         note_vol = self.velocity / 100
         vol = layer_vol * note_vol
         return vol
 
-    def _get_panning(self, layer):
+    def _get_panning(self, layer: int) -> float:
         """Returns the layer-aware panning of this note."""
         layer_pan = layer.panning / 100
         note_pan = self.panning / 100
@@ -146,7 +148,7 @@ class Note(pynbs.Note):
 class Song(pynbs.File):
     """Extends the pynbs.Song class with extra functionality."""
 
-    def __len__(self):
+    def __len__(self) -> int:
         """Returns the length of the song, in ticks."""
         if self.header.version == 1 or self.header.version == 2:
             # Length isn't correct in version 1 and 2 songs, so we need this workaround
@@ -155,7 +157,7 @@ class Song(pynbs.File):
             length = self.header.song_length
         return length
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: Union[int, slice]):
         """Returns the notes in a certain section (vertical slice) of the song."""
         if isinstance(key, int):
             section = [note for note in self.notes if note.tick == key]
@@ -168,15 +170,15 @@ class Song(pynbs.File):
         return list(section)
 
     @property
-    def duration(self):
+    def duration(self) -> int:
         return self._duration
         """The duration of the song, in seconds."""
 
     @duration.getter
-    def duration(self):
+    def duration(self) -> None:
         self._duration = len(self) / self.header.tempo * 1000
 
-    def weighted_notes():
+    def weighted_notes(self) -> Iterator[Note]:
         # TODO: Consider calculating this automatically upon initializing the song, to avoid recalculating?
         # Except I don't want to destroy the original song data.
         return (note.apply_layer_weight(self.layers[note.layer]) for note in song.notes)
@@ -191,7 +193,7 @@ class Song(pynbs.File):
                 group[name].append(layer.id)
         return groups
 
-    def notes_by_layer(self, group_by_name=False):
+    def notes_by_layer(self, group_by_name=False) -> dict[str, list[Note]]:
         """Returns a dict of lists containing the notes in each non-empty layer of the song."""
         layers = {}
         for note in self.weighted_notes():
@@ -210,8 +212,8 @@ class Song(pynbs.File):
             for name, layers in self.layer_groups():
                 notes = filter(lambda note: note.layer in layers, self.weighted_notes())
 
-    def loop(self, count: int, start=None: int):
         """Returns this song looped 'count' times with an optional loop start tick
+    def loop(self, count: int, start: int=None) -> Song:
         (if not provided, defaults to the start tick defined in the song)."""
         if start is None:
             start = self.header.loop_start_tick
@@ -223,7 +225,7 @@ class Song(pynbs.File):
             new_song.notes.extend(notes)
         return new_song
 
-    def sorted_notes(self):
+    def sorted_notes(self) -> list[Note]:
         notes = (
             note.apply_layer_weight(self.layers[note.layer]) for note in song.notes
         )
@@ -234,32 +236,33 @@ class SongRenderer():
     def __init__(self, song, output_path, default_sound):
         pass
 
-    def missing_instruments():
+    def missing_instruments(self):
         missing = []
         for instrument in self.song.instruments:
+            pass
 
-    def render_audio():
+    def render_audio(self):
         pass
 
-    def export(filename, format="wav", sample_rate=44100, channels=2, bit_depth=24, bitrate=320, target_size=None):
+    def export(filename, format: str="wav", sample_rate:int=44100, channels: int=2, bit_depth: int=24, bitrate: int=320, target_size: int=None):
         pass
 
 
 def render_audio(
-    song,
-    output_path,
-    default_sound_path=None,
-    custom_sound_path=SOUNDS_PATH,
-    start=None,
-    end=None,
-    loops=0,
-    fadeout=0,
-    format="wav",
-    sample_rate=44100,
-    channels=2,
-    bit_depth=24,
-    bitrate=320,
-    target_size=None,
+    song: pynbs.Song,
+    output_path: str,
+    default_sound_path: str=None,
+    custom_sound_path: str=SOUNDS_PATH,
+    start: int=None,
+    end: int=None,
+    loops: int=0,
+    fadeout: Union[int, float]=0,
+    format: str="wav",
+    sample_rate: int=44100,
+    channels: int=2,
+    bit_depth: int=24,
+    bitrate: int=320,
+    target_size: int=None,
 ):
 
     start = time.time()
