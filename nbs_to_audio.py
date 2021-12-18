@@ -269,28 +269,117 @@ class Song(pynbs.File):
 
 
 class SongRenderer:
-    def __init__(self, song, output_path, default_sound):
-        pass
+    def __init__(self, song: Song):
+        self._song = song
+        self._instruments = {}
+        self._mixer = pydub_mixer.Mixer
+        self._mixed = False
+        self._track = None
+
+    def load_instruments(self, path: Union[str, zipfile.ZipFile, BinaryIO]):
+        self._instruments.update(load_instruments(self._song, path))
 
     def missing_instruments(self):
-        missing = []
-        for instrument in self.song.instruments:
-            pass
+        return [
+            instrument
+            for instrument in self._song.instruments
+            if instrument.id not in self._instruments
+        ]
 
-    def render_audio(self):
-        pass
+    def mix(
+        self,
+        ignore_missing_instruments: bool = False,
+    ):
 
-    def export(
+        if not ignore_missing_instruments and self.missing_instruments():
+            raise ValueError("")
+
+        instruments = load_instruments(self.song, self.custom_sound_path)
+
+        length = len(self._song)
+        self._track = pydub.AudioSegment.silent(duration=length)
+
+        last_ins = None
+        last_key = None
+        last_vol = None
+        last_pan = None
+
+        sorted_notes = self.song.sorted_notes()
+        for i, note in enumerate(sorted_notes):
+
+            ins = note.instrument
+            key = note.pitch
+            vol = note.velocity
+            pan = note.panning
+
+            if ins != last_ins:
+                last_key = None
+                last_vol = None
+                last_pan = None
+                # try:
+                sound1 = instruments[note.instrument]
+                # except IndexError:
+                #    if not ignore_missing_instruments:
+                #        pass
+                sound1 = sync(sound1)
+
+            if key != last_key:
+                last_vol = None
+                last_pan = None
+                pitch = key_to_pitch(key)
+                sound2 = change_speed(sound1, pitch)
+
+            if vol != last_vol:
+                last_pan = None
+                gain = vol_to_gain(vol)
+                sound3 = sound2.apply_gain(gain)
+
+            if pan != last_pan:
+                sound4 = sound3.pan(pan)
+                sound = sound4
+
+            last_ins = ins
+            last_key = key
+            last_vol = vol
+            last_pan = pan
+
+            pos = note.tick / self.song.header.tempo * 1000
+
+            self._mixer.overlay(sound, position=pos)
+
+    def render(self):
+        self._track = self.mixer.to_audio_segment()
+
+    def save(
         self,
         filename: str,
         format: str = "wav",
         sample_rate: int = 44100,
         channels: int = 2,
         bit_depth: int = 24,
-        bitrate: int = 320,
+        target_bitrate: int = 320,
         target_size: int = None,
     ):
-        pass
+
+        if self._track is None:
+            self._render()
+
+        seconds = track.duration_seconds
+
+        if target_size:
+            bitrate = (target_size / seconds) * 8
+            bitrate = min(bitrate, target_bitrate)
+        else:
+            bitrate = target_bitrate
+
+        outfile = track.export(
+            filename,
+            format="mp3",
+            bitrate="{}k".format(bitrate),
+            tags={"artist": "test"},
+        )
+
+        outfile.close()
 
 
 def render_audio(
@@ -309,109 +398,5 @@ def render_audio(
     target_bitrate: int = 320,
     target_size: int = None,
 ):
-
-    start = time.time()
-
-    instruments = load_instruments(song, custom_sound_path)
-
-    length = len(song)
-    track = pydub.AudioSegment.silent(duration=length)
-    mixer = pydub_mixer.Mixer()
-
-    last_ins = None
-    last_key = None
-    last_vol = None
-    last_pan = None
-
-    ins_changes = 0
-    key_changes = 0
-    vol_changes = 0
-    pan_changes = 0
-
-    sorted_notes = song.sorted_notes()
-    for i, note in enumerate(sorted_notes):
-
-        ins = note.instrument
-        key = note.pitch
-        vol = note.volume
-        pan = note.panning
-
-        # TODO: optimize and avoid gain/pitch/key calculation if default value!
-        # TODO: ignore locked layers
-        # TODO: pan has a loudness compensation? https://github.com/jiaaro/pydub/blob/master/API.markdown#audiosegmentpan
-
-        if ins != last_ins:
-            last_key = None
-            last_vol = None
-            last_pan = None
-            sound1 = instruments[note.instrument]
-            sound1 = sync(sound1)
-            ins_changes += 1
-
-        if key != last_key:
-            last_vol = None
-            last_pan = None
-            pitch = key_to_pitch(key)
-            sound2 = change_speed(sound1, pitch)
-            key_changes += 1
-
-        if vol != last_vol:
-            last_pan = None
-            gain = vol_to_gain(vol)
-            sound3 = sound2.apply_gain(gain)
-            vol_changes += 1
-
-        if pan != last_pan:
-            sound4 = sound3.pan(pan)
-            sound = sound4
-            pan_changes += 1
-
-        last_ins = ins
-        last_key = key
-        last_vol = vol
-        last_pan = pan
-
-        if i % 10 == 0:
-            print(
-                "Converting note {}/{} (tick: {}, layer: {}, vol: {}, pan: {}, pit: {})".format(
-                    i + 1, len(song.notes), note.tick, note.layer, vol, pan, pitch
-                )
-            )
-
-        pos = note.tick / song.header.tempo * 1000
-
-        mixer.overlay(sound, position=pos)
-
-    track = mixer.to_audio_segment()
-
-    seconds = track.duration_seconds
-
-    if target_size:
-        bitrate = (target_size / seconds) * 8
-        bitrate = min(bitrate, target_bitrate)
-    else:
-        bitrate = target_bitrate
-
-    outfile = track.export(
-        output_path,
-        format="mp3",
-        bitrate="{}k".format(bitrate),
-        tags={"artist": "test"},
-    )
-
-    outfile.close()
-
-    end = time.time()
-
-    with open("tests/log_{}.txt".format(os.path.basename(output_path)), "w") as f:
-        f.write(
-            "Ins: {}\nKey: {}\nVol: {}\nPan: {}\n\nStart: {}\nEnd: {}\nTime elapsed: {}".format(
-                ins_changes,
-                key_changes,
-                vol_changes,
-                pan_changes,
-                start,
-                end,
-                end - start,
-            )
-        )
+    if song.is_instance(pynbs.Song):
+        pass
