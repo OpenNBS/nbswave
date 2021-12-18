@@ -21,9 +21,8 @@ import zipfile
 from typing import BinaryIO, Iterator, Optional, Union
 
 import pydub
-import pynbs
-
 import pydub_mixer
+import pynbs
 
 SOUNDS_PATH = "sounds"
 
