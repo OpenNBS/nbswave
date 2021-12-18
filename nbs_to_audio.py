@@ -263,7 +263,9 @@ class Song(pynbs.File):
         notes = (
             note.apply_layer_weight(self.layers[note.layer]) for note in self.notes
         )
-        return sorted(notes, key=lambda x: (x.pitch, x.instrument, x.volume, x.panning))
+        return sorted(
+            notes, key=lambda x: (x.pitch, x.instrument, x.velocity, x.panning)
+        )
 
 
 class SongRenderer:
