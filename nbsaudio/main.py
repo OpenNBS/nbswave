@@ -13,16 +13,16 @@
 # TODO: Export individual tracks based on layers or layer groups
 
 
-from __future__ import annotations
-
 import io
 import os
 import zipfile
-from typing import BinaryIO, Iterator, Optional, Union
+from typing import BinaryIO, Union
 
 import pydub
-import pydub_mixer
 import pynbs
+
+import audio
+import song
 
 SOUNDS_PATH = "sounds"
 
@@ -50,7 +50,7 @@ def load_default_instruments():
     segments = {}
     for index, ins in enumerate(DEFAULT_INSTRUMENTS):
         filename = os.path.join(os.getcwd(), SOUNDS_PATH, ins)
-        sound = pydub_mixer.load_sound(filename)
+        sound = audio.load_sound(filename)
         segments[index] = sound
     return segments
 
@@ -73,7 +73,7 @@ def load_custom_instruments(
         # File path
         else:
             file = os.path.join(path, ins.file)
-        sound = pydub_mixer.load_sound(file)
+        sound = audio.load_sound(file)
         segments[ins.id] = sound
 
     if zip_file is not None:
@@ -83,10 +83,10 @@ def load_custom_instruments(
 
 
 class SongRenderer:
-    def __init__(self, song: Song):
+    def __init__(self, song: song.Song):
         self._song = song
         self._instruments = load_default_instruments()
-        self._mixer = pydub_mixer.Mixer
+        self._mixer = audio.Mixer
         self._mixed = False
         self._track = None
 
@@ -133,17 +133,17 @@ class SongRenderer:
                 # except IndexError:
                 #    if not ignore_missing_instruments:
                 #        pass
-                sound1 = pydub_mixer.sync(sound1)
+                sound1 = audio.sync(sound1)
 
             if key != last_key:
                 last_vol = None
                 last_pan = None
-                pitch = pydub_mixer.key_to_pitch(key)
-                sound2 = pydub_mixer.change_speed(sound1, pitch)
+                pitch = audio.key_to_pitch(key)
+                sound2 = audio.change_speed(sound1, pitch)
 
             if vol != last_vol:
                 last_pan = None
-                gain = pydub_mixer.vol_to_gain(vol)
+                gain = audio.vol_to_gain(vol)
                 sound3 = sound2.apply_gain(gain)
 
             if pan != last_pan:
