@@ -274,13 +274,13 @@ class Song(pynbs.File):
 class SongRenderer:
     def __init__(self, song: Song):
         self._song = song
-        self._instruments = {}
+        self._instruments = load_default_instruments()
         self._mixer = pydub_mixer.Mixer
         self._mixed = False
         self._track = None
 
     def load_instruments(self, path: Union[str, zipfile.ZipFile, BinaryIO]):
-        self._instruments.update(load_instruments(self._song, path))
+        self._instruments.update(load_custom_instruments(self._song, path))
 
     def missing_instruments(self):
         return [
@@ -296,8 +296,6 @@ class SongRenderer:
 
         if not ignore_missing_instruments and self.missing_instruments():
             raise ValueError("")
-
-        instruments = load_instruments(self.song, self.custom_sound_path)
 
         length = len(self._song)
         self._track = pydub.AudioSegment.silent(duration=length)
@@ -320,7 +318,7 @@ class SongRenderer:
                 last_vol = None
                 last_pan = None
                 # try:
-                sound1 = instruments[note.instrument]
+                sound1 = self._instruments[note.instrument]
                 # except IndexError:
                 #    if not ignore_missing_instruments:
                 #        pass
@@ -367,7 +365,7 @@ class SongRenderer:
         if self._track is None:
             self._render()
 
-        seconds = track.duration_seconds
+        seconds = self._track.duration_seconds
 
         if target_size:
             bitrate = (target_size / seconds) * 8
@@ -375,7 +373,7 @@ class SongRenderer:
         else:
             bitrate = target_bitrate
 
-        outfile = track.export(
+        outfile = self._track.export(
             filename,
             format="mp3",
             bitrate="{}k".format(bitrate),
