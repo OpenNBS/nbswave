@@ -121,9 +121,21 @@ class Note(pynbs.Note):
     """Extends `pynbs.Note` with extra functionality to calculate
     the compensated pitch, volume and panning values."""
 
+    def __new__(cls, note: Union[pynbs.Note, Note]):
+        super().__new__(
+            cls,
+            note.tick,
+            note.layer,
+            note.instrument,
+            note.key,
+            note.velocity,
+            note.panning,
+            note.pitch,
+        )
+
     def move(self, offset: int) -> Note:
         """Return this note moved by a certain amount of ticks."""
-        new_note = self
+        new_note = Note(self)
         new_note.tick += offset
         return new_note
 
@@ -163,6 +175,12 @@ class Note(pynbs.Note):
 
 class Song(pynbs.File):
     """Extends the `pynbs.File` class with extra functionality."""
+
+    def __init__(self, song: pynbs.File):
+        super(Song, self).__init__(
+            song.header, song.notes, song.layers, song.instruments
+        )
+        self.notes = [Note(note) for note in self.notes]
 
     def __len__(self) -> int:
         """Return the length of the song, in ticks."""
