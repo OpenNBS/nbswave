@@ -29,8 +29,7 @@ import pydub_mixer
 
 SOUNDS_PATH = "sounds"
 
-
-default_instruments = [
+DEFAULT_INSTRUMENTS = [
     "harp.ogg",
     "dbass.ogg",
     "bdrum.ogg",
@@ -54,15 +53,19 @@ def load_sound(path: str) -> pydub.AudioSegment:
     return pydub.AudioSegment.from_file(path)
 
 
-def load_instruments(
-    song: pynbs.File, path: Union(str, zipfile.ZipFile, BinaryIO)
-) -> list[pydub.AudioSegment]:
-    segments = []
-
-    for ins in default_instruments:
+def load_default_instruments():
+    segments = {}
+    for index, ins in enumerate(DEFAULT_INSTRUMENTS):
         filename = os.path.join(os.getcwd(), SOUNDS_PATH, ins)
         sound = load_sound(filename)
-        segments.append(sound)
+        segments[index] = sound
+    return segments
+
+
+def load_custom_instruments(
+    song: pynbs.File, path: Union(str, zipfile.ZipFile, BinaryIO)
+) -> dict[int, pydub.AudioSegment]:
+    segments = {}
 
     zip_file = None
     for ins in song.instruments:
@@ -78,7 +81,7 @@ def load_instruments(
         else:
             file = os.path.join(path, ins.file)
         sound = load_sound(file)
-        segments.append(sound)
+        segments[ins.id] = sound
 
     if zip_file is not None:
         zip_file.close()
