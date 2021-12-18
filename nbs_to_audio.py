@@ -207,8 +207,8 @@ class Song(pynbs.File):
 
     @property
     def duration(self) -> int:
-        return self._duration
         """The duration of the song, in seconds."""
+        return self._duration
 
     @duration.getter
     def duration(self) -> None:
