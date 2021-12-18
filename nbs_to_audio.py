@@ -230,27 +230,19 @@ class Song(pynbs.File):
                 groups[name].append(layer.id)
         return groups
 
-        layers = {}
     def notes_by_layer(
         self, group_by_name: Optional[bool] = False
     ) -> dict[str, list[Note]]:
         """Return a dict of lists containing the weighted notes in each non-empty layer of the
         song. If `group_by_name` is true, notes in layers with identical names will be grouped."""
+        groups = {}
         for note in self.weighted_notes():
             layer = self.layers[note.layer]
-            if group_by_name:
-                group = layer.name
-            else:
-                group = layer.id + " " + layer.name
-                if group not in layers:
-                    layers[group] = []
-                layers[group].append(note)
-        return layers
-
-        if group_by_name:
-            # Complexity of O(n^2). Consider iterating notes once grouping them into layer groups
-            for name, layers in self.layer_groups():
-                notes = filter(lambda note: note.layer in layers, self.weighted_notes())
+            group_name = layer.name if group_by_name else f"{layer.id} {layer.name}"
+            if group_name not in groups:
+                groups[group_name] = []
+            groups[group_name].append(note)
+        return groups
 
     def loop(self, count: int, start: Optional[int] = None) -> Song:
         """Return this song looped `count` times with an optional loop start tick (`start`).
