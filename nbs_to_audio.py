@@ -20,7 +20,7 @@ import math
 import os
 import time
 import zipfile
-from typing import BinaryIO, Iterator, Union
+from typing import BinaryIO, Iterator, Optional, Union
 
 import pydub
 import pynbs
@@ -50,12 +50,12 @@ default_instruments = [
 ]
 
 
-def load_sound(path) -> pydub.AudioSegment:
+def load_sound(path: str) -> pydub.AudioSegment:
     return pydub.AudioSegment.from_file(path)
 
 
 def load_instruments(
-    song, path: Union(str, zipfile.ZipFile, BinaryIO)
+    song: pynbs.File, path: Union(str, zipfile.ZipFile, BinaryIO)
 ) -> list[pydub.AudioSegment]:
     segments = []
 
@@ -87,7 +87,10 @@ def load_instruments(
 
 
 def sync(
-    sound, channels: int = 2, frame_rate: int = 44100, sample_width: int = 2
+    sound: pydub.AudioSegment,
+    channels: Optional[int] = 2,
+    frame_rate: Optional[int] = 44100,
+    sample_width: Optional[int] = 2,
 ) -> pydub.AudioSegment:
     return (
         sound.set_channels(channels)
@@ -96,7 +99,7 @@ def sync(
     )
 
 
-def change_speed(sound, speed: int = 1.0) -> pydub.AudioSegment:
+def change_speed(sound: pydub.AudioSegment, speed: int = 1.0) -> pydub.AudioSegment:
     if speed == 1.0:
         return sound
 
@@ -178,9 +181,7 @@ class Song(pynbs.File):
             start = key.start if key.start is not None else 0
             stop = key.stop if key.stop is not None else len(self)
             section = [
-                note
-                for note in self.notes
-                if note.tick > slice.start and note.tick < slice.stop
+                note for note in self.notes if note.tick > start and note.tick < stop
             ]
         else:
             raise TypeError("Index must be an integer")
@@ -199,7 +200,7 @@ class Song(pynbs.File):
         """Return all notes in this song with their layer velocity and panning applied."""
         return (note.apply_layer_weight(self.layers[note.layer]) for note in self.notes)
 
-    def layer_groups(self):
+    def layer_groups(self) -> dict[str, pynbs.Layer]:
         """Return a dict containing each unique layer name in this song and a list
         of all layers with that name."""
         groups = {}
@@ -211,8 +212,10 @@ class Song(pynbs.File):
                 groups[name].append(layer.id)
         return groups
 
-    def notes_by_layer(self, group_by_name=False) -> dict[str, list[Note]]:
         layers = {}
+    def notes_by_layer(
+        self, group_by_name: Optional[bool] = False
+    ) -> dict[str, list[Note]]:
         """Return a dict of lists containing the weighted notes in each non-empty layer of the
         song. If `group_by_name` is true, notes in layers with identical names will be grouped."""
         for note in self.weighted_notes():
@@ -231,7 +234,7 @@ class Song(pynbs.File):
             for name, layers in self.layer_groups():
                 notes = filter(lambda note: note.layer in layers, self.weighted_notes())
 
-    def loop(self, count: int, start: int = None) -> Song:
+    def loop(self, count: int, start: Optional[int] = None) -> Song:
         """Return this song looped `count` times with an optional loop start tick (`start`).
         If `start` is not provided, defaults to the start tick defined in the song)."""
         if start is None:
