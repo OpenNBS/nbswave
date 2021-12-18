@@ -1,5 +1,43 @@
+import math
+from typing import Optional
+
 import numpy as np
 from pydub import AudioSegment
+
+
+def load_sound(path: str) -> AudioSegment:
+    return AudioSegment.from_file(path)
+
+
+def sync(
+    sound: AudioSegment,
+    channels: Optional[int] = 2,
+    frame_rate: Optional[int] = 44100,
+    sample_width: Optional[int] = 2,
+) -> AudioSegment:
+    return (
+        sound.set_channels(channels)
+        .set_frame_rate(frame_rate)
+        .set_sample_width(sample_width)
+    )
+
+
+def change_speed(sound: AudioSegment, speed: int = 1.0) -> AudioSegment:
+    if speed == 1.0:
+        return sound
+
+    new = sound._spawn(
+        sound.raw_data, overrides={"frame_rate": int(sound.frame_rate * speed)}
+    )
+    return new.set_frame_rate(sound.frame_rate)
+
+
+def key_to_pitch(key: int) -> float:
+    return 2 ** ((key) / 12)
+
+
+def vol_to_gain(vol: float) -> float:
+    return math.log(max(vol, 0.0001), 10) * 20
 
 
 class Mixer(object):

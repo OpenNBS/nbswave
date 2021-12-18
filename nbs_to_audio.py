@@ -16,9 +16,7 @@
 from __future__ import annotations
 
 import io
-import math
 import os
-import time
 import zipfile
 from typing import BinaryIO, Iterator, Optional, Union
 
@@ -49,15 +47,11 @@ DEFAULT_INSTRUMENTS = [
 ]
 
 
-def load_sound(path: str) -> pydub.AudioSegment:
-    return pydub.AudioSegment.from_file(path)
-
-
 def load_default_instruments():
     segments = {}
     for index, ins in enumerate(DEFAULT_INSTRUMENTS):
         filename = os.path.join(os.getcwd(), SOUNDS_PATH, ins)
-        sound = load_sound(filename)
+        sound = pydub_mixer.load_sound(filename)
         segments[index] = sound
     return segments
 
@@ -80,44 +74,13 @@ def load_custom_instruments(
         # File path
         else:
             file = os.path.join(path, ins.file)
-        sound = load_sound(file)
+        sound = pydub_mixer.load_sound(file)
         segments[ins.id] = sound
 
     if zip_file is not None:
         zip_file.close()
 
     return segments
-
-
-def sync(
-    sound: pydub.AudioSegment,
-    channels: Optional[int] = 2,
-    frame_rate: Optional[int] = 44100,
-    sample_width: Optional[int] = 2,
-) -> pydub.AudioSegment:
-    return (
-        sound.set_channels(channels)
-        .set_frame_rate(frame_rate)
-        .set_sample_width(sample_width)
-    )
-
-
-def change_speed(sound: pydub.AudioSegment, speed: int = 1.0) -> pydub.AudioSegment:
-    if speed == 1.0:
-        return sound
-
-    new = sound._spawn(
-        sound.raw_data, overrides={"frame_rate": int(sound.frame_rate * speed)}
-    )
-    return new.set_frame_rate(sound.frame_rate)
-
-
-def key_to_pitch(key: int) -> float:
-    return 2 ** ((key) / 12)
-
-
-def vol_to_gain(vol: float) -> float:
-    return math.log(max(vol, 0.0001), 10) * 20
 
 
 class Note(pynbs.Note):
@@ -322,17 +285,17 @@ class SongRenderer:
                 # except IndexError:
                 #    if not ignore_missing_instruments:
                 #        pass
-                sound1 = sync(sound1)
+                sound1 = pydub_mixer.sync(sound1)
 
             if key != last_key:
                 last_vol = None
                 last_pan = None
-                pitch = key_to_pitch(key)
-                sound2 = change_speed(sound1, pitch)
+                pitch = pydub_mixer.key_to_pitch(key)
+                sound2 = pydub_mixer.change_speed(sound1, pitch)
 
             if vol != last_vol:
                 last_pan = None
-                gain = vol_to_gain(vol)
+                gain = pydub_mixer.vol_to_gain(vol)
                 sound3 = sound2.apply_gain(gain)
 
             if pan != last_pan:
