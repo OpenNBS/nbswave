@@ -400,6 +400,7 @@ def render_audio(
     bit_depth: int = 24,
     target_bitrate: int = 320,
     target_size: int = None,
+    headroom: float = -3.0,
 ):
     if song.is_instance(pynbs.Song):
         pass
