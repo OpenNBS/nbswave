@@ -7,6 +7,12 @@
 # Add different naming conventions for layers
 # Prevent normalization making output gain too low when song clips
 
+# TODO: optimize and avoid gain/pitch/key calculation if default value!
+# TODO: ignore locked layers
+# TODO: pan has a loudness compensation? https://github.com/jiaaro/pydub/blob/master/API.markdown#audiosegmentpan
+# TODO: Export individual tracks based on layers or layer groups
+
+
 from __future__ import annotations
 
 import io
@@ -109,7 +115,7 @@ def vol_to_gain(vol: float) -> float:
 
 
 class Note(pynbs.Note):
-    """Extends pynbs.Note with extra functionality to calculate
+    """Extends `pynbs.Note` with extra functionality to calculate
     the compensated pitch, volume and panning values."""
 
     def move(self, offset: int) -> Note:
@@ -119,7 +125,7 @@ class Note(pynbs.Note):
         return new_note
 
     def apply_layer_weight(self, layer: pynbs.Layer) -> Note:
-        """Returns a new Note object with compensated pitch, volume and panning."""
+        """Return a new Note object with compensated pitch, volume and panning."""
         pitch = self._get_pitch()
         volume = self._get_volume(layer)
         panning = self._get_panning(layer)
@@ -128,21 +134,21 @@ class Note(pynbs.Note):
         )
 
     def _get_pitch(self) -> float:
-        """Returns the detune-aware pitch of this note."""
+        """Return the detune-aware pitch of this note."""
         key = self.key - 45
         detune = self.pitch / 100
         pitch = key + detune
         return pitch
 
-    def _get_volume(self, layer: int) -> float:
-        """Returns the layer-aware volume of this note."""
+    def _get_volume(self, layer: pynbs.Layer) -> float:
+        """Return the layer-aware volume of this note."""
         layer_vol = layer.volume / 100
         note_vol = self.velocity / 100
         vol = layer_vol * note_vol
         return vol
 
-    def _get_panning(self, layer: int) -> float:
-        """Returns the layer-aware panning of this note."""
+    def _get_panning(self, layer: pynbs.Layer) -> float:
+        """Return the layer-aware panning of this note."""
         layer_pan = layer.panning / 100
         note_pan = self.panning / 100
         if layer_pan == 0:
@@ -153,10 +159,10 @@ class Note(pynbs.Note):
 
 
 class Song(pynbs.File):
-    """Extends the pynbs.Song class with extra functionality."""
+    """Extends the `pynbs.File` class with extra functionality."""
 
     def __len__(self) -> int:
-        """Returns the length of the song, in ticks."""
+        """Return the length of the song, in ticks."""
         if self.header.version == 1 or self.header.version == 2:
             # Length isn't correct in version 1 and 2 songs, so we need this workaround
             length = max((note.pitch for note in self.notes))
@@ -164,8 +170,8 @@ class Song(pynbs.File):
             length = self.header.song_length
         return length
 
-    def __getitem__(self, key: Union[int, slice]):
-        """Returns the notes in a certain section (vertical slice) of the song."""
+    def __getitem__(self, key: Union[int, slice]) -> list[Note]:
+        """Return the notes in a certain section (vertical slice) of the song."""
         if isinstance(key, int):
             section = [note for note in self.notes if note.tick == key]
         elif isinstance(key, slice):
@@ -190,11 +196,12 @@ class Song(pynbs.File):
         self._duration = len(self) / self.header.tempo * 1000
 
     def weighted_notes(self) -> Iterator[Note]:
-        # TODO: Consider calculating this automatically upon initializing the song, to avoid recalculating?
-        # Except I don't want to destroy the original song data.
+        """Return all notes in this song with their layer velocity and panning applied."""
         return (note.apply_layer_weight(self.layers[note.layer]) for note in self.notes)
 
     def layer_groups(self):
+        """Return a dict containing each unique layer name in this song and a list
+        of all layers with that name."""
         groups = {}
         for layer in self.layers:
             name = layer.name
@@ -205,8 +212,9 @@ class Song(pynbs.File):
         return groups
 
     def notes_by_layer(self, group_by_name=False) -> dict[str, list[Note]]:
-        """Returns a dict of lists containing the notes in each non-empty layer of the song."""
         layers = {}
+        """Return a dict of lists containing the weighted notes in each non-empty layer of the
+        song. If `group_by_name` is true, notes in layers with identical names will be grouped."""
         for note in self.weighted_notes():
             layer = self.layers[note.layer]
             if group_by_name:
@@ -224,8 +232,8 @@ class Song(pynbs.File):
                 notes = filter(lambda note: note.layer in layers, self.weighted_notes())
 
     def loop(self, count: int, start: int = None) -> Song:
-        """Return this song looped 'count' times with an optional loop start tick
-        (if not provided, defaults to the start tick defined in the song)."""
+        """Return this song looped `count` times with an optional loop start tick (`start`).
+        If `start` is not provided, defaults to the start tick defined in the song)."""
         if start is None:
             start = self.header.loop_start_tick
         notes = self[start:]
@@ -237,6 +245,8 @@ class Song(pynbs.File):
         return new_song
 
     def sorted_notes(self) -> list[Note]:
+        """Return the weighted notes in this song sorted by pitch, instrument, velocity, and
+        panning."""
         notes = (
             note.apply_layer_weight(self.layers[note.layer]) for note in self.notes
         )
