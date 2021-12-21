@@ -6,7 +6,7 @@ authors = ["Bentroen <bemcdc@gmail.com>"]
 license = "MIT"
 
 [tool.poetry.dependencies]
-python = ">=3.7, <3.11"
+python = "^3.7"
 pydub = "^0.25.1"
 pynbs = "^0.4.2"
 numpy = "^1.21.4"
