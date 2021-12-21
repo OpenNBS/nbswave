@@ -10,7 +10,7 @@ class Note(pynbs.Note):
     the compensated pitch, volume and panning values."""
 
     def __new__(cls, note: Union[pynbs.Note, Note]):
-        super().__new__(
+        return super().__new__(
             cls,
             note.tick,
             note.layer,
@@ -65,9 +65,7 @@ class Song(pynbs.File):
     """Extends the `pynbs.File` class with extra functionality."""
 
     def __init__(self, song: pynbs.File):
-        super(Song, self).__init__(
-            song.header, song.notes, song.layers, song.instruments
-        )
+        super().__init__(song.header, song.notes, song.layers, song.instruments)
         self.notes = [Note(note) for note in self.notes]
 
     def __len__(self) -> int:

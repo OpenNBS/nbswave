@@ -40,7 +40,7 @@ def vol_to_gain(vol: float) -> float:
     return math.log(max(vol, 0.0001), 10) * 20
 
 
-class Mixer(object):
+class Mixer:
     def __init__(self):
         self.parts = []
 

@@ -21,8 +21,7 @@ from typing import BinaryIO, Union
 import pydub
 import pynbs
 
-import audio
-import song
+from . import audio, nbs
 
 SOUNDS_PATH = "sounds"
 
@@ -46,7 +45,7 @@ DEFAULT_INSTRUMENTS = [
 ]
 
 
-def load_default_instruments():
+def load_default_instruments() -> dict[int, pydub.AudioSegment]:
     segments = {}
     for index, ins in enumerate(DEFAULT_INSTRUMENTS):
         filename = os.path.join(os.getcwd(), SOUNDS_PATH, ins)
@@ -56,7 +55,7 @@ def load_default_instruments():
 
 
 def load_custom_instruments(
-    song: pynbs.File, path: Union(str, zipfile.ZipFile, BinaryIO)
+    song: pynbs.File, path: Union[str, zipfile.ZipFile, BinaryIO]
 ) -> dict[int, pydub.AudioSegment]:
     segments = {}
 
@@ -83,10 +82,10 @@ def load_custom_instruments(
 
 
 class SongRenderer:
-    def __init__(self, song: song.Song):
+    def __init__(self, song: nbs.Song):
         self._song = song
         self._instruments = load_default_instruments()
-        self._mixer = audio.Mixer
+        self._mixer = audio.Mixer()
         self._mixed = False
         self._track = None
 
@@ -160,7 +159,7 @@ class SongRenderer:
             self._mixer.overlay(sound, position=pos)
 
     def render(self):
-        self._track = self.mixer.to_audio_segment()
+        self._track = self._mixer.to_audio_segment()
 
     def save(
         self,
@@ -195,7 +194,7 @@ class SongRenderer:
 
 
 def render_audio(
-    song: pynbs.Song,
+    song: pynbs.File,
     output_path: str,
     default_sound_path: str = None,
     custom_sound_path: str = SOUNDS_PATH,
@@ -210,6 +209,12 @@ def render_audio(
     target_bitrate: int = 320,
     target_size: int = None,
     headroom: float = -3.0,
-):
-    if song.is_instance(pynbs.Song):
-        pass
+) -> None:
+
+    if isinstance(song, pynbs.File):
+        song = nbs.Song(song)
+
+    renderer = SongRenderer(song)
+    renderer.mix()
+    renderer.render()
+    renderer.save(output_path)

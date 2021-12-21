@@ -1,10 +1,10 @@
-import nbs_to_audio
 import pynbs
 
+from nbsaudio.main import render_audio
 
 path = "test.nbs"
 song = pynbs.read(path)
 
 output = "test.mp3"
 
-handle = nbs_to_audio.render_audio(song, output)
+render_audio(song, output)
