@@ -98,6 +98,7 @@ class SongRenderer:
 
     def _mix(
         self,
+        notes: Iterable[nbs.Note],
         ignore_missing_instruments: bool = False,
     ) -> pydub.AudioSegment:
         mixer = audio.Mixer()
@@ -108,8 +109,7 @@ class SongRenderer:
         last_vol = None
         last_pan = None
 
-        sorted_notes = self.song.sorted_notes()
-        for i, note in enumerate(sorted_notes):
+        for note in notes:
 
             ins = note.instrument
             key = note.pitch
@@ -152,6 +152,15 @@ class SongRenderer:
             mixer.overlay(sound, position=pos)
 
         return mixer.to_audio_segment()
+
+    def mix_song(self):
+        return self._mix(self._song.sorted_notes())
+
+    def mix_layers(self):
+        for id, notes in self._song.notes_by_layer():
+            yield self._mix(notes)
+
+        return self._mix(self._song.sorted_notes())
 
     def save(
         self,
