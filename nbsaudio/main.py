@@ -85,9 +85,6 @@ class SongRenderer:
     def __init__(self, song: nbs.Song):
         self._song = song
         self._instruments = load_default_instruments()
-        self._mixer = audio.Mixer()
-        self._mixed = False
-        self._track = None
 
     def load_instruments(self, path: Union[str, zipfile.ZipFile, BinaryIO]):
         self._instruments.update(load_custom_instruments(self._song, path))
@@ -99,16 +96,12 @@ class SongRenderer:
             if instrument.id not in self._instruments
         ]
 
-    def mix(
+    def _mix(
         self,
         ignore_missing_instruments: bool = False,
-    ):
-
-        if not ignore_missing_instruments and self.missing_instruments():
-            raise ValueError("")
-
+    ) -> pydub.AudioSegment:
+        mixer = audio.Mixer()
         length = len(self._song)
-        self._track = pydub.AudioSegment.silent(duration=length)
 
         last_ins = None
         last_key = None
@@ -154,12 +147,11 @@ class SongRenderer:
             last_vol = vol
             last_pan = pan
 
-            pos = note.tick / self.song.header.tempo * 1000
+            pos = note.tick / self._song.header.tempo * 1000
 
-            self._mixer.overlay(sound, position=pos)
+            mixer.overlay(sound, position=pos)
 
-    def render(self):
-        self._track = self._mixer.to_audio_segment()
+        return mixer.to_audio_segment()
 
     def save(
         self,
