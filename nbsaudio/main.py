@@ -120,11 +120,11 @@ class SongRenderer:
                 last_key = None
                 last_vol = None
                 last_pan = None
-                # try:
-                sound1 = self._instruments[note.instrument]
-                # except IndexError:
-                #    if not ignore_missing_instruments:
-                #        pass
+                try:
+                    sound1 = self._instruments[note.instrument]
+                except KeyError:
+                    pass  # TODO: raise missing instrument exception
+
                 sound1 = audio.sync(sound1)
 
             if key != last_key:
