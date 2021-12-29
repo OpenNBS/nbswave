@@ -16,7 +16,7 @@
 import io
 import os
 import zipfile
-from typing import BinaryIO, Union
+from typing import BinaryIO, Iterable, Optional, Union
 
 import pydub
 import pynbs
