@@ -33,7 +33,7 @@ class Note(pynbs.Note):
         volume = self._get_volume(layer)
         panning = self._get_panning(layer)
         return self.__class__(
-            self.tick, self.layer, self.instrument, pitch, volume, panning
+            pynbs.Note(self.tick, self.layer, self.instrument, pitch, volume, panning)
         )
 
     def _get_pitch(self) -> float:
