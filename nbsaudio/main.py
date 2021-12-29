@@ -96,63 +96,6 @@ class SongRenderer:
             if instrument.id not in self._instruments
         ]
 
-    def _mix(
-        self,
-        notes: Iterable[nbs.Note],
-        ignore_missing_instruments: bool = False,
-    ) -> pydub.AudioSegment:
-        mixer = audio.Mixer()
-        length = len(self._song)
-
-        last_ins = None
-        last_key = None
-        last_vol = None
-        last_pan = None
-
-        for note in notes:
-
-            ins = note.instrument
-            key = note.pitch
-            vol = note.velocity
-            pan = note.panning
-
-            if ins != last_ins:
-                last_key = None
-                last_vol = None
-                last_pan = None
-                try:
-                    sound1 = self._instruments[note.instrument]
-                except KeyError:
-                    pass  # TODO: raise missing instrument exception
-
-                sound1 = audio.sync(sound1)
-
-            if key != last_key:
-                last_vol = None
-                last_pan = None
-                pitch = audio.key_to_pitch(key)
-                sound2 = audio.change_speed(sound1, pitch)
-
-            if vol != last_vol:
-                last_pan = None
-                gain = audio.vol_to_gain(vol)
-                sound3 = sound2.apply_gain(gain)
-
-            if pan != last_pan:
-                sound4 = sound3.pan(pan)
-                sound = sound4
-
-            last_ins = ins
-            last_key = key
-            last_vol = vol
-            last_pan = pan
-
-            pos = note.tick / self._song.header.tempo * 1000
-
-            mixer.overlay(sound, position=pos)
-
-        return mixer.to_audio_segment()
-
     def mix_song(self):
         return self._mix(self._song.sorted_notes())
 
@@ -161,37 +104,6 @@ class SongRenderer:
             yield self._mix(notes)
 
         return self._mix(self._song.sorted_notes())
-
-    def save(
-        self,
-        filename: str,
-        format: str = "wav",
-        sample_rate: int = 44100,
-        channels: int = 2,
-        bit_depth: int = 24,
-        target_bitrate: int = 320,
-        target_size: int = None,
-    ):
-
-        if self._track is None:
-            self._render()
-
-        seconds = self._track.duration_seconds
-
-        if target_size:
-            bitrate = (target_size / seconds) * 8
-            bitrate = min(bitrate, target_bitrate)
-        else:
-            bitrate = target_bitrate
-
-        outfile = self._track.export(
-            filename,
-            format="mp3",
-            bitrate="{}k".format(bitrate),
-            tags={"artist": "test"},
-        )
-
-        outfile.close()
 
 
 def render_audio(
@@ -216,6 +128,4 @@ def render_audio(
         song = nbs.Song(song)
 
     renderer = SongRenderer(song)
-    renderer.mix()
-    renderer.render()
-    renderer.save(output_path)
+    renderer.mix_song().save(output_path)
