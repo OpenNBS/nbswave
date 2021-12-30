@@ -102,8 +102,11 @@ class SongRenderer:
         self,
         notes: Iterable[nbs.Note],
         ignore_missing_instruments: bool = False,
+        sample_rate: Optional[int] = 44100,
+        channels: Optional[int] = 2,
+        bit_depth: Optional[int] = 16,
     ) -> audio.Track:
-        mixer = audio.Mixer()
+        mixer = audio.Mixer(sample_rate, channels, bit_depth)
         length = len(self._song)
 
         last_ins = None

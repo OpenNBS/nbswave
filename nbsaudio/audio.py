@@ -41,14 +41,29 @@ def vol_to_gain(vol: float) -> float:
 
 
 class Mixer:
-    def __init__(self):
+    def __init__(
+        self,
+        sample_width: Optional[int] = 16,
+        frame_rate: Optional[int] = 44100,
+        channels: Optional[int] = 2,
+    ):
         self.parts = []
+        self.sample_width = sample_width
+        self.frame_rate = frame_rate
+        self.channels = channels
 
     def overlay(self, sound, position=0):
         self.parts.append((position, sound))
         return self
 
     def _sync(self):
+
+        # TODO: Right now, the Mixer class relies on the overlay()'d segments
+        # having the same frame rate prior to being added, since if this is
+        # not done before, a MemoryError may occur as it tries to _sync all
+        # segments. Use the sample_width, frame_rate and channels instance
+        # attributes instead and sync sounds as they are added to self.parts
+
         positions, segs = zip(*self.parts)
 
         frame_rate = segs[0].frame_rate
@@ -104,9 +119,6 @@ class Track(AudioSegment):
         self,
         filename: str,
         format: Optional[str] = "wav",
-        sample_rate: Optional[int] = 44100,
-        channels: Optional[int] = 2,
-        bit_depth: Optional[int] = 16,
         target_bitrate: Optional[int] = 320,
         target_size: Optional[int] = None,
     ):
