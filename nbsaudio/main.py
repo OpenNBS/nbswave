@@ -82,7 +82,9 @@ def load_custom_instruments(
 
 
 class SongRenderer:
-    def __init__(self, song: nbs.Song):
+    def __init__(self, song: Union[pynbs.File, nbs.Song]):
+        if isinstance(song, pynbs.File):
+            song = nbs.Song(song)
         self._song = song
         self._instruments = load_default_instruments()
 
@@ -180,9 +182,4 @@ def render_audio(
     target_size: int = None,
     headroom: float = -3.0,
 ) -> None:
-
-    if isinstance(song, pynbs.File):
-        song = nbs.Song(song)
-
-    renderer = SongRenderer(song)
-    renderer.mix_song().save(output_path)
+    SongRenderer(song).mix_song().save(output_path)
