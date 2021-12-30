@@ -102,7 +102,7 @@ class SongRenderer:
         self,
         notes: Iterable[nbs.Note],
         ignore_missing_instruments: bool = False,
-    ) -> pydub.AudioSegment:
+    ) -> audio.Track:
         mixer = audio.Mixer()
         length = len(self._song)
 

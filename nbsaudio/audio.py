@@ -83,15 +83,22 @@ class Mixer:
             end = start + len(samples)
             output[start:end] += samples
 
-        return seg._spawn(output, overrides={"sample_width": 4}).normalize(headroom=0.0)
+        return Track(
+            seg._spawn(output, overrides={"sample_width": 4}).normalize(headroom=0.0)
+        )
 
 
 class Track(AudioSegment):
     """A subclass of `pydub.AudioSegment` for applying post-rendering
     effects to rendered tracks."""
 
-    def __init__(self, data=None):
-        super().__init__(data)
+    def __init__(self, segment: AudioSegment):
+        super().__init__(
+            segment.get_array_of_samples(),
+            sample_width=segment.sample_width,
+            frame_rate=segment.frame_rate,
+            channels=segment.channels,
+        )
 
     def save(
         self,
