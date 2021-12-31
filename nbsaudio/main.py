@@ -117,7 +117,7 @@ class SongRenderer:
         for note in notes:
 
             ins = note.instrument
-            key = note.pitch
+            key = note.key
             vol = note.velocity
             pan = note.panning
 
