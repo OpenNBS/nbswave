@@ -10,7 +10,7 @@ song = pynbs.read(path)
 output = "test.mp3"
 
 start = time.time()
-render_audio(song, output)
+render_audio(song, output, format="mp3")
 end = time.time()
 
 print(f"Done! Took {end-start:.2f} seconds")
