@@ -180,9 +180,17 @@ def render_audio(
     format: str = "wav",
     sample_rate: int = 44100,
     channels: int = 2,
-    bit_depth: int = 24,
+    bit_depth: int = 16,
     target_bitrate: int = 320,
     target_size: int = None,
     headroom: float = -3.0,
 ) -> None:
-    SongRenderer(song).mix_song().save(output_path)
+    SongRenderer(song).mix_song().save(
+        output_path,
+        format,
+        bit_depth // 8,
+        sample_rate,
+        channels,
+        target_bitrate,
+        target_size,
+    )

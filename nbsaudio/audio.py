@@ -98,7 +98,7 @@ class Mixer:
             end = start + len(samples)
             output[start:end] += samples
 
-        return Track(
+        return Track.from_audio_segment(
             seg._spawn(output, overrides={"sample_width": 4}).normalize(headroom=0.0)
         )
 
@@ -107,8 +107,12 @@ class Track(AudioSegment):
     """A subclass of `pydub.AudioSegment` for applying post-rendering
     effects to rendered tracks."""
 
-    def __init__(self, segment: AudioSegment):
-        super().__init__(
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    @classmethod
+    def from_audio_segment(cls, segment: AudioSegment):
+        return cls(
             segment.get_array_of_samples(),
             sample_width=segment.sample_width,
             frame_rate=segment.frame_rate,
@@ -119,8 +123,12 @@ class Track(AudioSegment):
         self,
         filename: str,
         format: Optional[str] = "wav",
+        sample_width: Optional[int] = 2,
+        frame_rate: Optional[int] = 44100,
+        channels: Optional[int] = 2,
         target_bitrate: Optional[int] = 320,
         target_size: Optional[int] = None,
+        tags: Optional[dict[str, str]] = None,
     ):
 
         seconds = self.duration_seconds
@@ -131,11 +139,17 @@ class Track(AudioSegment):
         else:
             bitrate = target_bitrate
 
-        outfile = self.export(
+        output_segment = (
+            self.set_channels(channels)
+            .set_frame_rate(frame_rate)
+            .set_sample_width(sample_width)
+        )
+
+        outfile = output_segment.export(
             filename,
-            format="mp3",
+            format=format,
             bitrate="{}k".format(bitrate),
-            tags={"artist": "test"},
+            tags=tags,
         )
 
         outfile.close()
