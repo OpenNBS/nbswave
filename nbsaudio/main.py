@@ -16,7 +16,7 @@
 import io
 import os
 import zipfile
-from typing import BinaryIO, Iterable, Optional, Union
+from typing import BinaryIO, Iterable, Optional, TypeVar, Union
 
 import pydub
 import pynbs
@@ -44,18 +44,20 @@ DEFAULT_INSTRUMENTS = [
     "pling.ogg",
 ]
 
+PathLike = TypeVar("PathLike", str, bytes, os.PathLike)
 
-def load_default_instruments() -> dict[int, pydub.AudioSegment]:
+
+def load_default_instruments(path: PathLike) -> dict[int, pydub.AudioSegment]:
     segments = {}
     for index, ins in enumerate(DEFAULT_INSTRUMENTS):
-        filename = os.path.join(os.getcwd(), SOUNDS_PATH, ins)
+        filename = os.path.join(os.getcwd(), path, ins)
         sound = audio.load_sound(filename)
         segments[index] = sound
     return segments
 
 
 def load_custom_instruments(
-    song: pynbs.File, path: Union[str, zipfile.ZipFile, BinaryIO]
+    song: pynbs.File, path: PathLike
 ) -> dict[int, pydub.AudioSegment]:
     segments = {}
 
@@ -82,11 +84,15 @@ def load_custom_instruments(
 
 
 class SongRenderer:
-    def __init__(self, song: Union[pynbs.File, nbs.Song]):
+    def __init__(
+        self,
+        song: Union[pynbs.File, nbs.Song],
+        default_sound_path: Optional[PathLike] = SOUNDS_PATH,
+    ):
         if isinstance(song, pynbs.File):
             song = nbs.Song(song)
         self._song = song
-        self._instruments = load_default_instruments()
+        self._instruments = load_default_instruments(default_sound_path)
 
     def load_instruments(self, path: Union[str, zipfile.ZipFile, BinaryIO]):
         self._instruments.update(load_custom_instruments(self._song, path))
@@ -171,7 +177,7 @@ class SongRenderer:
 def render_audio(
     song: pynbs.File,
     output_path: str,
-    default_sound_path: str = None,
+    default_sound_path: str = SOUNDS_PATH,
     custom_sound_path: str = SOUNDS_PATH,
     start: int = None,
     end: int = None,
@@ -185,7 +191,7 @@ def render_audio(
     target_size: int = None,
     headroom: float = -3.0,
 ) -> None:
-    SongRenderer(song).mix_song().save(
+    SongRenderer(song, default_sound_path).mix_song().save(
         output_path,
         format,
         bit_depth // 8,
