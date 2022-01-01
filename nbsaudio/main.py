@@ -63,6 +63,13 @@ def load_custom_instruments(
 
     zip_file = None
     for ins in song.instruments:
+        ins_id = ins.id + song.header.default_instruments
+
+        if ins.file == "":
+            print(f"Sound file for instrument {ins.name} wasn't assigned; skipping")
+            segments[ins_id] = None
+            continue
+
         # ZipFile object
         if isinstance(path, zipfile.ZipFile):
             zip_file = path
@@ -74,8 +81,14 @@ def load_custom_instruments(
         # File path
         else:
             file = os.path.join(path, ins.file)
-        sound = audio.load_sound(file)
-        segments[ins.id] = sound
+
+        try:
+            sound = audio.load_sound(file)
+        except FileNotFoundError:
+            print(f"Sound file for instrument {ins.file} couldn't be found; skipping")
+            continue
+
+        segments[ins_id] = sound
 
     if zip_file is not None:
         zip_file.close()
@@ -131,10 +144,14 @@ class SongRenderer:
                 last_key = None
                 last_vol = None
                 last_pan = None
+
                 try:
                     sound1 = self._instruments[note.instrument]
                 except KeyError:
                     pass  # TODO: raise missing instrument exception
+
+                if sound1 is None:  # Sound file not assigned
+                    continue
 
                 sound1 = audio.sync(sound1)
 
@@ -191,7 +208,9 @@ def render_audio(
     target_size: int = None,
     headroom: float = -3.0,
 ) -> None:
-    SongRenderer(song, default_sound_path).mix_song().save(
+    renderer = SongRenderer(song, default_sound_path)
+    renderer.load_instruments(custom_sound_path)
+    renderer.mix_song().save(
         output_path,
         format,
         bit_depth // 8,
