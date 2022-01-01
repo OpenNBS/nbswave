@@ -98,8 +98,15 @@ class Mixer:
             end = start + len(samples)
             output[start:end] += samples
 
+        clipping_factor = np.amax(output) / (2 ** 15)
+        if clipping_factor > 1:
+            print(
+                f"The output is clipping by {clipping_factor:.2f}x. Normalizing to 0dBFS"
+            )
+        gain_compensation = int(min(1, 1 / clipping_factor) * 65535)
+
         return Track.from_audio_segment(
-            seg._spawn(output, overrides={"sample_width": 4}).normalize(headroom=0.0)
+            seg._spawn(output * gain_compensation, overrides={"sample_width": 4})
         )
 
 
