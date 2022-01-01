@@ -98,7 +98,8 @@ class Mixer:
             end = start + len(samples)
             output[start:end] += samples
 
-        clipping_factor = np.amax(output) / (2 ** 15)
+        peak = np.abs(output).max()
+        clipping_factor = peak / (2 ** 15)
         if clipping_factor > 1:
             print(
                 f"The output is clipping by {clipping_factor:.2f}x. Normalizing to 0dBFS"
