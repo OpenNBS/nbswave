@@ -147,11 +147,7 @@ class Track(AudioSegment):
         else:
             bitrate = target_bitrate
 
-        output_segment = (
-            self.set_channels(channels)
-            .set_frame_rate(frame_rate)
-            .set_sample_width(sample_width)
-        )
+        output_segment = sync(self, channels, frame_rate, sample_width)
 
         outfile = output_segment.export(
             filename,
