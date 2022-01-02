@@ -22,7 +22,7 @@ def sync(
     )
 
 
-def change_speed(sound: AudioSegment, speed: int = 1.0) -> AudioSegment:
+def change_speed(sound: AudioSegment, speed: float = 1.0) -> AudioSegment:
     if speed == 1.0:
         return sound
 
