@@ -27,7 +27,7 @@ def change_speed(sound: AudioSegment, speed: int = 1.0) -> AudioSegment:
         return sound
 
     new = sound._spawn(
-        sound.raw_data, overrides={"frame_rate": int(sound.frame_rate * speed)}
+        sound.raw_data, overrides={"frame_rate": round(sound.frame_rate * speed)}
     )
     return new.set_frame_rate(sound.frame_rate)
 
