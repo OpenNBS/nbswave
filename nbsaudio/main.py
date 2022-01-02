@@ -47,6 +47,10 @@ DEFAULT_INSTRUMENTS = [
 PathLike = TypeVar("PathLike", str, bytes, os.PathLike)
 
 
+class MissingInstrumentException(Exception):
+    pass
+
+
 def load_default_instruments(path: PathLike) -> dict[int, pydub.AudioSegment]:
     segments = {}
     for index, ins in enumerate(DEFAULT_INSTRUMENTS):
@@ -147,8 +151,13 @@ class SongRenderer:
 
                 try:
                     sound1 = self._instruments[note.instrument]
-                except KeyError:
-                    pass  # TODO: raise missing instrument exception
+                except KeyError:  # Sound file missing
+                    if not ignore_missing_instruments:
+                        raise MissingInstrumentException(
+                            f"The sound file for instrument f{ins.name} was not found: f{ins.file}"
+                        )
+                    else:
+                        continue
 
                 if sound1 is None:  # Sound file not assigned
                     continue
