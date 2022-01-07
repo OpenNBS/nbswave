@@ -1,5 +1,5 @@
 import math
-from typing import Optional
+from typing import Optional, Dict
 
 import numpy as np
 from pydub import AudioSegment
@@ -136,7 +136,7 @@ class Track(AudioSegment):
         channels: Optional[int] = 2,
         target_bitrate: Optional[int] = 320,
         target_size: Optional[int] = None,
-        tags: Optional[dict[str, str]] = None,
+        tags: Optional[Dict[str, str]] = None,
     ):
 
         seconds = self.duration_seconds

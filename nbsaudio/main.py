@@ -16,7 +16,7 @@
 import io
 import os
 import zipfile
-from typing import BinaryIO, Iterable, Optional, TypeVar, Union
+from typing import BinaryIO, Iterable, Optional, TypeVar, Union, Dict
 
 import pydub
 import pynbs
@@ -51,7 +51,7 @@ class MissingInstrumentException(Exception):
     pass
 
 
-def load_default_instruments(path: PathLike) -> dict[int, pydub.AudioSegment]:
+def load_default_instruments(path: PathLike) -> Dict[int, pydub.AudioSegment]:
     segments = {}
     for index, ins in enumerate(DEFAULT_INSTRUMENTS):
         filename = os.path.join(os.getcwd(), path, ins)
@@ -62,7 +62,7 @@ def load_default_instruments(path: PathLike) -> dict[int, pydub.AudioSegment]:
 
 def load_custom_instruments(
     song: pynbs.File, path: PathLike
-) -> dict[int, pydub.AudioSegment]:
+) -> Dict[int, pydub.AudioSegment]:
     segments = {}
 
     zip_file = None

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Iterator, Optional, Union
+from typing import Iterator, Optional, Union, Dict
 
 import pynbs
 
@@ -104,7 +104,7 @@ class Song(pynbs.File):
         """Return all notes in this song with their layer velocity and panning applied."""
         return (note.apply_layer_weight(self.layers[note.layer]) for note in self.notes)
 
-    def layer_groups(self) -> dict[str, pynbs.Layer]:
+    def layer_groups(self) -> Dict[str, pynbs.Layer]:
         """Return a dict containing each unique layer name in this song and a list
         of all layers with that name."""
         groups = {}
@@ -118,7 +118,7 @@ class Song(pynbs.File):
 
     def notes_by_layer(
         self, group_by_name: Optional[bool] = False
-    ) -> dict[str, list[Note]]:
+    ) -> Dict[str, list[Note]]:
         """Return a dict of lists containing the weighted notes in each non-empty layer of the
         song. If `group_by_name` is true, notes in layers with identical names will be grouped."""
         groups = {}
