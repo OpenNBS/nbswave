@@ -4,6 +4,16 @@ version = "0.1.0"
 description = "An utility to render note block songs to a variety of audio formats"
 authors = ["Bentroen <bemcdc@gmail.com>"]
 license = "MIT"
+readme = "README.md"
+homepage = "https://github.com/Bentroen/nbs-audio"
+repository = "https://github.com/Bentroen/nbs-audio"
+keywords = ["nbs", "note-block-studio"]
+include = [
+     "LICENSE",
+]
+packages = [
+     { include = "nbsaudio" },
+]
 
 [tool.poetry.dependencies]
 python = "^3.7"
