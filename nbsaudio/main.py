@@ -197,8 +197,6 @@ class SongRenderer:
         for id, notes in self._song.notes_by_layer():
             yield self._mix(notes)
 
-        return self._mix(self._song.sorted_notes())
-
 
 def render_audio(
     output_path: str,
