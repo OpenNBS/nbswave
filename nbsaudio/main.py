@@ -61,7 +61,7 @@ def load_default_instruments(path: PathLike) -> dict[int, pydub.AudioSegment]:
 
 
 def load_custom_instruments(
-    song: pynbs.File, path: PathLike
+    song: pynbs.File, path: Union[PathLike, zipfile.ZipFile, BinaryIO]
 ) -> dict[int, pydub.AudioSegment]:
     segments = {}
 
@@ -111,7 +111,7 @@ class SongRenderer:
         self._song = song
         self._instruments = load_default_instruments(default_sound_path)
 
-    def load_instruments(self, path: Union[str, zipfile.ZipFile, BinaryIO]):
+    def load_instruments(self, path: Union[PathLike, zipfile.ZipFile, BinaryIO]):
         self._instruments.update(load_custom_instruments(self._song, path))
 
     def missing_instruments(self):
@@ -199,10 +199,10 @@ class SongRenderer:
 
 
 def render_audio(
-    output_path: str,
-    default_sound_path: str = SOUNDS_PATH,
-    custom_sound_path: str = SOUNDS_PATH,
     song_path: PathLike,
+    output_path: PathLike,
+    default_sound_path: PathLike = SOUNDS_PATH,
+    custom_sound_path: PathLike = SOUNDS_PATH,
     start: int = None,
     end: int = None,
     loops: int = 0,
