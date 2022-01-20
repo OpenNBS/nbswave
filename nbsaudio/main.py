@@ -201,10 +201,10 @@ class SongRenderer:
 
 
 def render_audio(
-    song: pynbs.File,
     output_path: str,
     default_sound_path: str = SOUNDS_PATH,
     custom_sound_path: str = SOUNDS_PATH,
+    song_path: PathLike,
     start: int = None,
     end: int = None,
     loops: int = 0,
@@ -217,6 +217,7 @@ def render_audio(
     target_size: int = None,
     headroom: float = -3.0,
 ) -> None:
+    song = pynbs.read(song_path)
     renderer = SongRenderer(song, default_sound_path)
     renderer.load_instruments(custom_sound_path)
     renderer.mix_song().save(
