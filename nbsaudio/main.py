@@ -45,6 +45,7 @@ DEFAULT_INSTRUMENTS = [
 ]
 
 PathLike = Union[str, bytes, os.PathLike]
+ZipFileOrPath = Union[PathLike, zipfile.ZipFile, BinaryIO]
 
 
 class MissingInstrumentException(Exception):
@@ -61,7 +62,7 @@ def load_default_instruments(path: PathLike) -> dict[int, pydub.AudioSegment]:
 
 
 def load_custom_instruments(
-    song: pynbs.File, path: Union[PathLike, zipfile.ZipFile, BinaryIO]
+    song: pynbs.File, path: ZipFileOrPath
 ) -> dict[int, pydub.AudioSegment]:
     segments = {}
 
@@ -111,7 +112,7 @@ class SongRenderer:
         self._song = song
         self._instruments = load_default_instruments(default_sound_path)
 
-    def load_instruments(self, path: Union[PathLike, zipfile.ZipFile, BinaryIO]):
+    def load_instruments(self, path: ZipFileOrPath):
         self._instruments.update(load_custom_instruments(self._song, path))
 
     def missing_instruments(self):
