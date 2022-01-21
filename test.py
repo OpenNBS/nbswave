@@ -1,12 +1,9 @@
 import os
 import time
 
-import pynbs
-
 from nbsaudio.main import render_audio
 
-path = "test.nbs"
-song = pynbs.read(path)
+song = "test.nbs"
 
 output = "test.mp3"
 
