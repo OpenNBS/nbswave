@@ -23,6 +23,8 @@ import pynbs
 
 from . import audio, nbs
 
+__all__ = ["SongRenderer", "render_audio"]
+
 SOUNDS_PATH = "sounds"
 
 DEFAULT_INSTRUMENTS = [
