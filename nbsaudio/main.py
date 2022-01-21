@@ -44,7 +44,7 @@ DEFAULT_INSTRUMENTS = [
     "pling.ogg",
 ]
 
-PathLike = TypeVar("PathLike", str, bytes, os.PathLike)
+PathLike = Union[str, bytes, os.PathLike]
 
 
 class MissingInstrumentException(Exception):
