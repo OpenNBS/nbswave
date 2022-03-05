@@ -4,7 +4,7 @@ A Python package to render note block songs to a variety of audio formats.
 
 ## Overview
 
-nbswave is a Python package aimed at rendering note block songs from [Open Note Block Studio](https://opennbs.org/) to audio tracks.
+nbswave is a Python package aimed at rendering note block songs from [Open Note Block Studio](https://opennbs.org/) to audio tracks. Supports many common audio formats, both for loading custom sounds as well as exporting tracks.
 
 ## Setup
 
@@ -27,7 +27,15 @@ from nbswave import *
 render_audio("song.nbs", "output.mp3")
 ```
 
-The output format will be detected automatically based on the file extension.
+The output format will be detected automatically based on the file extension. You can still specify it explicitly if you'd like:
+
+```python
+from nbswave import *
+
+render_audio("song.nbs", "output", format='wav')
+```
+
+> Compatibility with audio formats depends on your FFmpeg configuration.
 
 ### Custom instruments
 
