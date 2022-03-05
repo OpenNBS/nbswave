@@ -204,6 +204,7 @@ def render_audio(
     target_bitrate: int = 320,
     target_size: int = None,
     headroom: float = 3.0,
+    ignore_missing_instruments: bool = False,
 ) -> None:
     song = pynbs.read(song_path)
     renderer = SongRenderer(song, default_sound_path)
@@ -217,4 +218,5 @@ def render_audio(
         target_bitrate,
         target_size,
         headroom,
+        ignore_missing_instruments,
     )
