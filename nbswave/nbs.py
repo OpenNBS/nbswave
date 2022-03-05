@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Iterator, Optional, Union
+from typing import Dict, Iterator, List, Optional, Union
 
 import pynbs
 
@@ -77,7 +77,7 @@ class Song(pynbs.File):
             length = self.header.song_length
         return length
 
-    def __getitem__(self, key: Union[int, slice]) -> list[Note]:
+    def __getitem__(self, key: Union[int, slice]) -> List[Note]:
         """Return the notes in a certain section (vertical slice) of the song."""
         if isinstance(key, int):
             section = [note for note in self.notes if note.tick == key]
@@ -104,7 +104,7 @@ class Song(pynbs.File):
         """Return all notes in this song with their layer velocity and panning applied."""
         return (note.apply_layer_weight(self.layers[note.layer]) for note in self.notes)
 
-    def layer_groups(self) -> dict[str, pynbs.Layer]:
+    def layer_groups(self) -> Dict[str, pynbs.Layer]:
         """Return a dict containing each unique layer name in this song and a list
         of all layers with that name."""
         groups = {}
@@ -118,7 +118,7 @@ class Song(pynbs.File):
 
     def notes_by_layer(
         self, group_by_name: Optional[bool] = False
-    ) -> dict[str, list[Note]]:
+    ) -> Dict[str, List[Note]]:
         """Return a dict of lists containing the weighted notes in each non-empty layer of the
         song. If `group_by_name` is true, notes in layers with identical names will be grouped."""
         groups = {}
@@ -143,7 +143,7 @@ class Song(pynbs.File):
             new_song.notes.extend(notes)
         return new_song
 
-    def sorted_notes(self) -> list[Note]:
+    def sorted_notes(self) -> List[Note]:
         """Return the weighted notes in this song sorted by pitch, instrument, velocity, and
         panning."""
         notes = (
