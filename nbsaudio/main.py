@@ -1,18 +1,3 @@
-# TODO:
-# Add progress reports
-# Add logging
-# Add looping
-# Add fadeout
-# Allow exporting layers separately. grouping layers with the same name
-# Add different naming conventions for layers
-# Prevent normalization making output gain too low when song clips
-
-# TODO: optimize and avoid gain/pitch/key calculation if default value!
-# TODO: ignore locked layers
-# TODO: pan has a loudness compensation? https://github.com/jiaaro/pydub/blob/master/API.markdown#audiosegmentpan
-# TODO: Export individual tracks based on layers or layer groups
-
-
 import io
 import os
 import zipfile
