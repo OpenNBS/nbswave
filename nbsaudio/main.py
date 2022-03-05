@@ -1,7 +1,7 @@
 import io
 import os
 import zipfile
-from typing import BinaryIO, Iterable, Optional, TypeVar, Union
+from typing import BinaryIO, Iterable, Optional, Union
 
 import pydub
 import pynbs
@@ -118,7 +118,6 @@ class SongRenderer:
         bit_depth: Optional[int] = 16,
     ) -> audio.Track:
         mixer = audio.Mixer(sample_rate, channels, bit_depth)
-        length = len(self._song)
 
         last_ins = None
         last_key = None
