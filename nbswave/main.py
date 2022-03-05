@@ -180,8 +180,11 @@ class SongRenderer:
 
         return mixer.to_audio_segment()
 
-    def mix_song(self):
-        return self._mix(self._song.sorted_notes())
+    def mix_song(self, ignore_missing_instruments=False):
+        return self._mix(
+            self._song.sorted_notes(),
+            ignore_missing_instruments=ignore_missing_instruments,
+        )
 
     def mix_layers(self):
         for id, notes in self._song.notes_by_layer():
@@ -209,7 +212,7 @@ def render_audio(
     song = pynbs.read(song_path)
     renderer = SongRenderer(song, default_sound_path)
     renderer.load_instruments(custom_sound_path)
-    renderer.mix_song().save(
+    renderer.mix_song(ignore_missing_instruments).save(
         output_path,
         format,
         bit_depth // 8,
@@ -217,6 +220,4 @@ def render_audio(
         channels,
         target_bitrate,
         target_size,
-        headroom,
-        ignore_missing_instruments,
     )
