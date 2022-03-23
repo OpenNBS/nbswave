@@ -20,6 +20,7 @@ python = ">=3.7, <3.11"
 pydub = "^0.25.1"
 pynbs = "^0.4.2"
 numpy = "^1.21.5"
+resampy = "^0.2.2"
 
 [tool.poetry.dev-dependencies]
 black = "^21.12b0"
