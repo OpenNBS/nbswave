@@ -2,6 +2,7 @@ import math
 from typing import Dict, Optional
 
 import numpy as np
+import resampy
 from pydub import AudioSegment
 
 
@@ -26,10 +27,16 @@ def change_speed(sound: AudioSegment, speed: float = 1.0) -> AudioSegment:
     if speed == 1.0:
         return sound
 
-    new = sound._spawn(
-        sound.raw_data, overrides={"frame_rate": round(sound.frame_rate * speed)}
-    )
-    return new.set_frame_rate(sound.frame_rate)
+    samples = sound.get_array_of_samples()
+    samples_np = np.array(samples, dtype="int16")
+    samples_reshape = samples_np.reshape(sound.channels, -1, order="F")
+
+    new_frame_rate = sound.frame_rate / speed
+    output = resampy.resample(samples_reshape, sound.frame_rate, new_frame_rate)
+    output_flattened = output.flatten("F")
+
+    new = sound._spawn(output_flattened, overrides={"frame_rate": sound.frame_rate})
+    return new
 
 
 def key_to_pitch(key: int) -> float:
