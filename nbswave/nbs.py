@@ -1,8 +1,14 @@
 from __future__ import annotations
 
-from typing import Dict, Iterator, List, Optional, Union
+from typing import Dict, Iterator, List, Optional, Sequence, Union
 
 import pynbs
+
+
+def sorted_notes(notes: Sequence[Note]) -> List[Note]:
+    """Return a list of notes sorted by pitch, instrument, velocity, and
+    panning."""
+    return sorted(notes, key=lambda x: (x.pitch, x.instrument, x.velocity, x.panning))
 
 
 class Note(pynbs.Note):
@@ -70,9 +76,9 @@ class Song(pynbs.File):
 
     def __len__(self) -> int:
         """Return the length of the song, in ticks."""
-        if self.header.version == 1 or self.header.version == 2:
+        if self.header.version in (1, 2):
             # Length isn't correct in version 1 and 2 songs, so we need this workaround
-            length = max((note.pitch for note in self.notes))
+            length = max((note.tick for note in self.notes))
         else:
             length = self.header.song_length
         return length
@@ -143,12 +149,18 @@ class Song(pynbs.File):
             new_song.notes.extend(notes)
         return new_song
 
+    def get_locked_layers(self) -> List[int]:
+        """Return a list of the layer IDs of all locked layers in the song."""
+        return [layer.id for layer in self.layers if layer.lock]
+
+    def get_unlocked_notes(self) -> Iterator[Note]:
+        """Return all notes in this song whose layers are not locked."""
+        locked_layers = self.get_locked_layers()
+        return (
+            note for note in self.weighted_notes() if note.layer not in locked_layers
+        )
+
     def sorted_notes(self) -> List[Note]:
-        """Return the weighted notes in this song sorted by pitch, instrument, velocity, and
+        """Return the notes in this song sorted by pitch, instrument, velocity, and
         panning."""
-        notes = (
-            note.apply_layer_weight(self.layers[note.layer]) for note in self.notes
-        )
-        return sorted(
-            notes, key=lambda x: (x.pitch, x.instrument, x.velocity, x.panning)
-        )
+        return sorted_notes(self.notes)

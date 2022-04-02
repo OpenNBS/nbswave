@@ -1,7 +1,7 @@
 import io
 import os
 import zipfile
-from typing import BinaryIO, Dict, Iterable, Optional, Union
+from typing import BinaryIO, Dict, Optional, Sequence, Union
 
 import pydub
 import pynbs
@@ -111,20 +111,25 @@ class SongRenderer:
 
     def _mix(
         self,
-        notes: Iterable[nbs.Note],
+        notes: Sequence[nbs.Note],
         ignore_missing_instruments: bool = False,
         sample_rate: Optional[int] = 44100,
         channels: Optional[int] = 2,
         bit_depth: Optional[int] = 16,
     ) -> audio.Track:
-        mixer = audio.Mixer(sample_rate, channels, bit_depth)
+
+        mixer = audio.Mixer(
+            sample_width=bit_depth // 8, frame_rate=sample_rate, channels=channels
+        )
+
+        sorted_notes = nbs.sorted_notes(notes)
 
         last_ins = None
         last_key = None
         last_vol = None
         last_pan = None
 
-        for note in notes:
+        for note in sorted_notes:
 
             ins = note.instrument
             key = note.key
@@ -180,9 +185,15 @@ class SongRenderer:
 
         return mixer.to_audio_segment()
 
-    def mix_song(self, ignore_missing_instruments=False):
+    def mix_song(self, ignore_missing_instruments=False, exclude_locked_layers=False):
+
+        if exclude_locked_layers:
+            notes_to_mix = self._song.get_unlocked_notes()
+        else:
+            notes_to_mix = self._song.weighted_notes()
+
         return self._mix(
-            self._song.sorted_notes(),
+            notes_to_mix,
             ignore_missing_instruments=ignore_missing_instruments,
         )
 
@@ -208,11 +219,12 @@ def render_audio(
     target_size: int = None,
     headroom: float = 3.0,
     ignore_missing_instruments: bool = False,
+    exclude_locked_layers: bool = False,
 ) -> None:
     song = pynbs.read(song_path)
     renderer = SongRenderer(song, default_sound_path)
     renderer.load_instruments(custom_sound_path)
-    renderer.mix_song(ignore_missing_instruments).save(
+    renderer.mix_song(ignore_missing_instruments, exclude_locked_layers).save(
         output_path,
         format,
         bit_depth // 8,
