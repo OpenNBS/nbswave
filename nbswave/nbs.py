@@ -1,8 +1,14 @@
 from __future__ import annotations
 
-from typing import Dict, Iterator, List, Optional, Union
+from typing import Dict, Iterator, List, Optional, Sequence, Union
 
 import pynbs
+
+
+def sorted_notes(notes: Sequence[Note]) -> List[Note]:
+    """Return a list of notes sorted by pitch, instrument, velocity, and
+    panning."""
+    return sorted(notes, key=lambda x: (x.pitch, x.instrument, x.velocity, x.panning))
 
 
 class Note(pynbs.Note):
@@ -147,21 +153,14 @@ class Song(pynbs.File):
         """Return a list of the layer IDs of all locked layers in the song."""
         return [layer.id for layer in self.layers if layer.lock]
 
-    # TODO: too many responsibilities -> get_unlocked_notes, sorted_notes, weighted_notes
-    def sorted_notes(self, exclude_locked_layers=False) -> List[Note]:
-        """Return the weighted notes in this song sorted by pitch, instrument, velocity, and
+    def get_unlocked_notes(self) -> Iterator[Note]:
+        """Return all notes in this song whose layers are not locked."""
+        locked_layers = self.get_locked_layers()
+        return (
+            note for note in self.weighted_notes() if note.layer not in locked_layers
+        )
+
+    def sorted_notes(self) -> List[Note]:
+        """Return the notes in this song sorted by pitch, instrument, velocity, and
         panning."""
-
-        if exclude_locked_layers:
-            locked_layers = self.get_locked_layers()
-        else:
-            locked_layers = []
-
-        notes = (
-            note.apply_layer_weight(self.layers[note.layer])
-            for note in self.notes
-            if note.layer not in locked_layers
-        )
-        return sorted(
-            notes, key=lambda x: (x.pitch, x.instrument, x.velocity, x.panning)
-        )
+        return sorted_notes(self.notes)

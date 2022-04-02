@@ -1,7 +1,7 @@
 import io
 import os
 import zipfile
-from typing import BinaryIO, Dict, Iterable, Optional, Union
+from typing import BinaryIO, Dict, Optional, Sequence, Union
 
 import pydub
 import pynbs
@@ -111,7 +111,7 @@ class SongRenderer:
 
     def _mix(
         self,
-        notes: Iterable[nbs.Note],
+        notes: Sequence[nbs.Note],
         ignore_missing_instruments: bool = False,
         sample_rate: Optional[int] = 44100,
         channels: Optional[int] = 2,
@@ -119,12 +119,15 @@ class SongRenderer:
     ) -> audio.Track:
         mixer = audio.Mixer(sample_rate, channels, bit_depth)
 
+
+        sorted_notes = nbs.sorted_notes(notes)
+
         last_ins = None
         last_key = None
         last_vol = None
         last_pan = None
 
-        for note in notes:
+        for note in sorted_notes:
 
             ins = note.instrument
             key = note.key
@@ -181,8 +184,14 @@ class SongRenderer:
         return mixer.to_audio_segment()
 
     def mix_song(self, ignore_missing_instruments=False, exclude_locked_layers=False):
+
+        if exclude_locked_layers:
+            notes_to_mix = self._song.get_unlocked_notes()
+        else:
+            notes_to_mix = self._song.weighted_notes()
+
         return self._mix(
-            self._song.sorted_notes(exclude_locked_layers),
+            notes_to_mix,
             ignore_missing_instruments=ignore_missing_instruments,
         )
 
