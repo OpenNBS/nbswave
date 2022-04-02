@@ -46,11 +46,15 @@ class Mixer:
         sample_width: Optional[int] = 2,
         frame_rate: Optional[int] = 44100,
         channels: Optional[int] = 2,
+        length: Optional[float] = 0,
     ):
         self.sample_width = sample_width
         self.frame_rate = frame_rate
         self.channels = channels
-        self.output = np.empty(0, dtype="int32")
+        self.output = np.empty(self._get_array_size(length), dtype="int32")
+
+    def _get_array_size(self, length_in_ms: float) -> int:
+        return int(length_in_ms * (self.frame_rate / 1000.0) * self.channels)
 
     def overlay(self, sound, position=0):
         sound_sync = self._sync(sound)
@@ -68,7 +72,7 @@ class Mixer:
             self.output = np.pad(
                 self.output, pad_width=(0, pad_length), mode="constant"
             )
-            # print(f"Padded from {output_size} to {end} (added {pad_length} entries)")
+            print(f"Padded from {output_size} to {end} (added {pad_length} entries)")
 
         self.output[start:end] += samples
 
@@ -99,7 +103,6 @@ class Mixer:
     # TODO: separate in mix() and to_audio_segment()
     # Add mix() to readme
     # Make compatible with other frame widths (1, 2, 4) (FRAME_DTYPE)
-    # Remove array padding? (creates a new array)
 
     def to_audio_segment(self):
         peak = np.abs(self.output).max()

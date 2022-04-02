@@ -109,6 +109,23 @@ class SongRenderer:
             if instrument.id not in self._instruments
         ]
 
+    def get_length(self, notes: Sequence[nbs.Note]) -> float:
+        """Get the length of the exported track based on the last
+        note to stop ringing.
+        """
+
+        def get_note_end_time(note: pynbs.Note) -> float:
+            sound = self._instruments[note.instrument]
+            note_pitch = audio.key_to_pitch(note.key)
+
+            note_start = note.tick / self._song.header.tempo * 1000
+            note_length = len(sound) / note_pitch
+            note_end = note_start + note_length
+
+            return note_end
+
+        return max(get_note_end_time(note) for note in notes)
+
     def _mix(
         self,
         notes: Sequence[nbs.Note],
@@ -118,8 +135,13 @@ class SongRenderer:
         bit_depth: Optional[int] = 16,
     ) -> audio.Track:
 
+        track_length = self.get_length(notes)
+
         mixer = audio.Mixer(
-            sample_width=bit_depth // 8, frame_rate=sample_rate, channels=channels
+            sample_width=bit_depth // 8,
+            frame_rate=sample_rate,
+            channels=channels,
+            length=track_length,
         )
 
         sorted_notes = nbs.sorted_notes(notes)
