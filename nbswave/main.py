@@ -135,7 +135,7 @@ class SongRenderer:
         bit_depth: Optional[int] = 16,
     ) -> audio.Track:
 
-        track_length = self.get_length(notes)
+        track_length = self.get_length(self._song.notes)
 
         mixer = audio.Mixer(
             sample_width=bit_depth // 8,
