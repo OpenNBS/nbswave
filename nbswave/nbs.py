@@ -72,7 +72,7 @@ class Song(pynbs.File):
         """Return the length of the song, in ticks."""
         if self.header.version == 1 or self.header.version == 2:
             # Length isn't correct in version 1 and 2 songs, so we need this workaround
-            length = max((note.pitch for note in self.notes))
+            length = max((note.tick for note in self.notes))
         else:
             length = self.header.song_length
         return length
