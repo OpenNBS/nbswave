@@ -47,33 +47,47 @@ class Mixer:
         frame_rate: Optional[int] = 44100,
         channels: Optional[int] = 2,
     ):
-        self.parts = []
         self.sample_width = sample_width
         self.frame_rate = frame_rate
         self.channels = channels
+        self.output = np.empty(0, dtype="int32")
 
     def overlay(self, sound, position=0):
-        self.parts.append((position, sound))
+        sound_sync = self._sync(sound)
+        samples = np.frombuffer(sound_sync.get_array_of_samples(), dtype="int16")
+
+        frame_offset = int(self.frame_rate * position / 1000.0)
+        sample_offset = frame_offset * self.channels
+
+        start = sample_offset
+        end = start + len(samples)
+
+        output_size = len(self.output)
+        if end > output_size:
+            pad_length = end - output_size
+            self.output = np.pad(
+                self.output, pad_width=(0, pad_length), mode="constant"
+            )
+            # print(f"Padded from {output_size} to {end} (added {pad_length} entries)")
+
+        self.output[start:end] += samples
+
         return self
 
-    def _sync(self):
-
-        # TODO: Right now, the Mixer class relies on the overlay()'d segments
-        # having the same frame rate prior to being added, since if this is
-        # not done before, a MemoryError may occur as it tries to _sync all
-        # segments. Use the sample_width, frame_rate and channels instance
-        # attributes instead and sync sounds as they are added to self.parts
-
-        positions, segs = zip(*self.parts)
-
-        frame_rate = segs[0].frame_rate
-        array_type = segs[0].array_type
-
-        offsets = [int(frame_rate * pos / 1000.0) for pos in positions]
-        segs = AudioSegment.empty()._sync(*segs)
-        return list(zip(offsets, segs))
+    def _sync(self, segment: AudioSegment):
+        return (
+            segment.set_sample_width(self.sample_width)
+            .set_frame_rate(self.frame_rate)
+            .set_channels(self.channels)
+        )
 
     def __len__(self):
+        return int(
+            len(self.output)
+            / (self.frame_rate * self.sample_width * self.channels)
+            * 1000.0
+        )
+
         parts = self._sync()
         seg = parts[0][1]
         frame_count = max(offset + seg.frame_count() for offset, seg in parts)
@@ -82,33 +96,31 @@ class Mixer:
     def append(self, sound):
         self.overlay(sound, position=len(self))
 
+    # TODO: separate in mix() and to_audio_segment()
+    # Add mix() to readme
+    # Make compatible with other frame widths (1, 2, 4) (FRAME_DTYPE)
+    # Remove array padding? (creates a new array)
+
     def to_audio_segment(self):
-        parts = self._sync()
-        seg = parts[0][1]
-        channels = seg.channels
-
-        frame_count = max(offset + seg.frame_count() for offset, seg in parts)
-        sample_count = int(frame_count * seg.channels)
-
-        output = np.zeros(sample_count, dtype="int32")
-        for offset, seg in parts:
-            sample_offset = offset * channels
-            samples = np.frombuffer(seg.get_array_of_samples(), dtype="int16")
-            start = sample_offset
-            end = start + len(samples)
-            output[start:end] += samples
-
-        peak = np.abs(output).max()
+        peak = np.abs(self.output).max()
+        print(peak)
         clipping_factor = peak / (2 ** 15)
         if clipping_factor > 1:
             print(
                 f"The output is clipping by {clipping_factor:.2f}x. Normalizing to 0dBFS"
             )
-        gain_compensation = int(min(1, 1 / clipping_factor) * 65535)
 
-        return Track.from_audio_segment(
-            seg._spawn(output * gain_compensation, overrides={"sample_width": 4})
+        normalized_signal = np.rint(self.output / clipping_factor).astype("int16")
+        print(np.abs(normalized_signal).max())
+
+        output_segment = AudioSegment(
+            normalized_signal,
+            frame_rate=self.frame_rate,
+            sample_width=self.sample_width,
+            channels=self.channels,
         )
+
+        return Track.from_audio_segment(output_segment)
 
 
 class Track(AudioSegment):
