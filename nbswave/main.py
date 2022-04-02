@@ -117,8 +117,10 @@ class SongRenderer:
         channels: Optional[int] = 2,
         bit_depth: Optional[int] = 16,
     ) -> audio.Track:
-        mixer = audio.Mixer(sample_rate, channels, bit_depth)
 
+        mixer = audio.Mixer(
+            sample_width=bit_depth // 8, frame_rate=sample_rate, channels=channels
+        )
 
         sorted_notes = nbs.sorted_notes(notes)
 

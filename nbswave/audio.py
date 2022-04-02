@@ -43,7 +43,7 @@ def vol_to_gain(vol: float) -> float:
 class Mixer:
     def __init__(
         self,
-        sample_width: Optional[int] = 16,
+        sample_width: Optional[int] = 2,
         frame_rate: Optional[int] = 44100,
         channels: Optional[int] = 2,
     ):
