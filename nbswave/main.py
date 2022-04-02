@@ -212,7 +212,7 @@ class SongRenderer:
         if exclude_locked_layers:
             notes_to_mix = self._song.get_unlocked_notes()
         else:
-            notes_to_mix = self._song.weighted_notes()
+            notes_to_mix = list(self._song.weighted_notes())
 
         return self._mix(
             notes_to_mix,
