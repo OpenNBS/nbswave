@@ -180,9 +180,9 @@ class SongRenderer:
 
         return mixer.to_audio_segment()
 
-    def mix_song(self, ignore_missing_instruments=False):
+    def mix_song(self, ignore_missing_instruments=False, exclude_locked_layers=False):
         return self._mix(
-            self._song.sorted_notes(),
+            self._song.sorted_notes(exclude_locked_layers),
             ignore_missing_instruments=ignore_missing_instruments,
         )
 
@@ -208,11 +208,12 @@ def render_audio(
     target_size: int = None,
     headroom: float = 3.0,
     ignore_missing_instruments: bool = False,
+    exclude_locked_layers: bool = False,
 ) -> None:
     song = pynbs.read(song_path)
     renderer = SongRenderer(song, default_sound_path)
     renderer.load_instruments(custom_sound_path)
-    renderer.mix_song(ignore_missing_instruments).save(
+    renderer.mix_song(ignore_missing_instruments, exclude_locked_layers).save(
         output_path,
         format,
         bit_depth // 8,

@@ -143,11 +143,24 @@ class Song(pynbs.File):
             new_song.notes.extend(notes)
         return new_song
 
-    def sorted_notes(self) -> List[Note]:
+    def get_locked_layers(self) -> List[int]:
+        """Return a list of the layer IDs of all locked layers in the song."""
+        return [layer.id for layer in self.layers if layer.lock]
+
+    # TODO: too many responsibilities -> get_unlocked_notes, sorted_notes, weighted_notes
+    def sorted_notes(self, exclude_locked_layers=False) -> List[Note]:
         """Return the weighted notes in this song sorted by pitch, instrument, velocity, and
         panning."""
+
+        if exclude_locked_layers:
+            locked_layers = self.get_locked_layers()
+        else:
+            locked_layers = []
+
         notes = (
-            note.apply_layer_weight(self.layers[note.layer]) for note in self.notes
+            note.apply_layer_weight(self.layers[note.layer])
+            for note in self.notes
+            if note.layer not in locked_layers
         )
         return sorted(
             notes, key=lambda x: (x.pitch, x.instrument, x.velocity, x.panning)
