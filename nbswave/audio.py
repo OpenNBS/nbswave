@@ -86,16 +86,7 @@ class Mixer:
         )
 
     def __len__(self):
-        return int(
-            len(self.output)
-            / (self.frame_rate * self.sample_width * self.channels)
-            * 1000.0
-        )
-
-        parts = self._sync()
-        seg = parts[0][1]
-        frame_count = max(offset + seg.frame_count() for offset, seg in parts)
-        return int(1000.0 * frame_count / seg.frame_rate)
+        return len(self.output) / ((self.frame_rate / 1000.0) * self.channels)
 
     def append(self, sound):
         self.overlay(sound, position=len(self))
