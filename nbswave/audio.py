@@ -91,10 +91,6 @@ class Mixer:
     def append(self, sound):
         self.overlay(sound, position=len(self))
 
-    # TODO: separate in mix() and to_audio_segment()
-    # Add mix() to readme
-    # Make compatible with other frame widths (1, 2, 4) (FRAME_DTYPE)
-
     def to_audio_segment(self):
         peak = np.abs(self.output).max()
         clipping_factor = peak / (2 ** 15)
