@@ -54,7 +54,16 @@ class Mixer:
         self.output = np.empty(self._get_array_size(length), dtype="int32")
 
     def _get_array_size(self, length_in_ms: float) -> int:
-        return int(length_in_ms * (self.frame_rate / 1000.0) * self.channels)
+        frame_count = length_in_ms * (self.frame_rate / 1000.0)
+        array_size = frame_count * self.channels
+        array_size_aligned = self._get_aligned_array_size(array_size)
+        return array_size_aligned
+
+    def _get_aligned_array_size(self, length: int):
+        """Pads an array length to the appropriate data format."""
+        align = self.sample_width * self.channels
+        length_aligned = math.ceil(length / align) * align
+        return length_aligned
 
     def overlay(self, sound, position=0):
         sound_sync = self._sync(sound)
@@ -68,7 +77,7 @@ class Mixer:
 
         output_size = len(self.output)
         if end > output_size:
-            pad_length = end - output_size
+            pad_length = self._get_aligned_array_size(end - output_size)
             self.output = np.pad(
                 self.output, pad_width=(0, pad_length), mode="constant"
             )
