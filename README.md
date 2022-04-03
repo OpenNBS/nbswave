@@ -71,6 +71,8 @@ renderer.load_instruments(nbs_sounds_folder)
 renderer.load_instruments("some_more_instruments.zip")
 
 renderer.missing_instruments()
+
+renderer.mix_song()
 ```
 
 ## Contributing
