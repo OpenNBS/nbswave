@@ -104,12 +104,14 @@ class Mixer:
     def to_audio_segment(self):
         peak = np.abs(self.output).max()
         clipping_factor = peak / (2 ** 15)
+
         if clipping_factor > 1:
             print(
                 f"The output is clipping by {clipping_factor:.2f}x. Normalizing to 0dBFS"
             )
-
-        normalized_signal = np.rint(self.output / clipping_factor).astype("int16")
+            normalized_signal = np.rint(self.output / clipping_factor).astype("int16")
+        else:
+            normalized_signal = self.output
 
         output_segment = AudioSegment(
             normalized_signal,
