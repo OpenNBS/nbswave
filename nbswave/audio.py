@@ -102,7 +102,7 @@ class Mixer:
 
     def to_audio_segment(self):
         peak = np.abs(self.output).max()
-        clipping_factor = peak / (2 ** 15)
+        clipping_factor = peak / (2 ** 15 - 1)
 
         if clipping_factor > 1:
             print(
