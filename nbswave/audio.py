@@ -51,7 +51,8 @@ class Mixer:
         self.sample_width = sample_width
         self.frame_rate = frame_rate
         self.channels = channels
-        self.output = np.empty(self._get_array_size(length), dtype="int32")
+        self.output = np.zeros(self._get_array_size(length), dtype="int32")
+        print(self.output)
 
     def _get_array_size(self, length_in_ms: float) -> int:
         frame_count = length_in_ms * (self.frame_rate / 1000.0)
