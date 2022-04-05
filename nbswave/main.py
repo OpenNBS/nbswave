@@ -207,8 +207,12 @@ class SongRenderer:
 
         return mixer.to_audio_segment()
 
-    def mix_song(self, ignore_missing_instruments=False, exclude_locked_layers=False):
-
+    def mix_song(
+        self,
+        ignore_missing_instruments=False,
+        exclude_locked_layers=False,
+        **kwargs,
+    ):
         if exclude_locked_layers:
             notes_to_mix = list(self._song.get_unlocked_notes())
         else:
@@ -217,6 +221,7 @@ class SongRenderer:
         return self._mix(
             notes_to_mix,
             ignore_missing_instruments=ignore_missing_instruments,
+            **kwargs,
         )
 
     def mix_layers(self):
@@ -246,7 +251,13 @@ def render_audio(
     song = pynbs.read(song_path)
     renderer = SongRenderer(song, default_sound_path)
     renderer.load_instruments(custom_sound_path)
-    renderer.mix_song(ignore_missing_instruments, exclude_locked_layers).save(
+    renderer.mix_song(
+        ignore_missing_instruments,
+        exclude_locked_layers,
+        sample_rate=sample_rate,
+        bit_depth=bit_depth,
+        channels=channels,
+    ).save(
         output_path,
         format,
         bit_depth // 8,
