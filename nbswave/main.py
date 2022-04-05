@@ -114,7 +114,7 @@ class SongRenderer:
         note to stop ringing.
         """
 
-        def get_note_end_time(note: pynbs.Note) -> float:
+        def get_note_end_time(note: nbs.Note) -> float:
             sound = self._instruments[note.instrument]
             note_pitch = audio.key_to_pitch(note.key)
 
@@ -135,7 +135,7 @@ class SongRenderer:
         bit_depth: Optional[int] = 16,
     ) -> audio.Track:
 
-        track_length = self.get_length(self._song.notes)
+        track_length = self.get_length(self._song.weighted_notes())
 
         mixer = audio.Mixer(
             sample_width=bit_depth // 8,
