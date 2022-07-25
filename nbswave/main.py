@@ -170,7 +170,8 @@ class SongRenderer:
                     sound1 = self._instruments[note.instrument]
                 except KeyError:  # Sound file missing
                     if not ignore_missing_instruments:
-                        instrument_data = self._song.instruments[ins]
+                        custom_ins_id = ins - self._song.header.default_instruments
+                        instrument_data = self._song.instruments[custom_ins_id]
                         ins_name = instrument_data.name
                         ins_file = instrument_data.file
                         raise MissingInstrumentException(
