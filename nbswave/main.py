@@ -115,14 +115,17 @@ class SongRenderer:
         """
 
         def get_note_end_time(note: nbs.Note) -> float:
-            sound = self._instruments[note.instrument]
-            note_pitch = audio.key_to_pitch(note.key)
 
             note_start = note.tick / self._song.header.tempo * 1000
-            note_length = len(sound) / note_pitch
-            note_end = note_start + note_length
+            sound = self._instruments.get(note.instrument)
 
-            return note_end
+            if sound is None:  # Sound either missing or not assigned
+                return note_start
+            else:
+                note_pitch = audio.key_to_pitch(note.key)
+                note_length = len(sound) / note_pitch
+                note_end = note_start + note_length
+                return note_end
 
         return max(get_note_end_time(note) for note in notes)
 
