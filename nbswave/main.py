@@ -175,7 +175,7 @@ class SongRenderer:
                         ins_name = instrument_data.name
                         ins_file = instrument_data.file
                         raise MissingInstrumentException(
-                            f"The sound file for instrument f{ins_name} was not found: f{ins_file}"
+                            f"The sound file for instrument {ins_name} was not found: {ins_file}"
                         )
                     else:
                         continue
