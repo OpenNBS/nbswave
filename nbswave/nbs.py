@@ -32,18 +32,24 @@ class Note(pynbs.Note):
         new_note.tick += offset
         return new_note
 
-    def apply_layer_weight(self, layer: pynbs.Layer) -> Note:
+    def apply_layer_weight(
+        self, layer: pynbs.Layer, custom_instrument: Optional[pynbs.Instrument] = None
+    ) -> Note:
         """Return a new Note object with compensated pitch, volume and panning."""
-        pitch = self._get_pitch()
+        pitch = self._get_pitch(custom_instrument)
         volume = self._get_volume(layer)
         panning = self._get_panning(layer)
         return self.__class__(
             pynbs.Note(self.tick, self.layer, self.instrument, pitch, volume, panning)
         )
 
-    def _get_pitch(self) -> float:
+    def _get_pitch(self, custom_instrument: Optional[pynbs.Instrument] = None) -> float:
         """Return the detune-aware pitch of this note."""
-        key = self.key - 45
+        if custom_instrument is not None:
+            instrument_key = (45 - custom_instrument.pitch) + 45
+        else:
+            instrument_key = 45  # This assumes all default instruments are pitched F#4
+        key = self.key - instrument_key
         detune = self.pitch / 100
         pitch = key + detune
         return pitch
@@ -107,7 +113,14 @@ class Song(pynbs.File):
 
     def weighted_notes(self) -> Iterator[Note]:
         """Return all notes in this song with their layer velocity and panning applied."""
-        return (note.apply_layer_weight(self.layers[note.layer]) for note in self.notes)
+        for note in self.notes:
+            layer = self.layers[note.layer]
+            custom_instrument_id = note.instrument - self.header.default_instruments
+            if custom_instrument_id >= 0:
+                instrument = self.instruments[custom_instrument_id]
+            else:
+                instrument = None
+            yield note.apply_layer_weight(layer, instrument)
 
     def layer_groups(self) -> Dict[str, pynbs.Layer]:
         """Return a dict containing each unique layer name in this song and a list
