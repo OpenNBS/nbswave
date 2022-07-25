@@ -15,9 +15,8 @@ class Note(pynbs.Note):
     """Extends `pynbs.Note` with extra functionality to calculate
     the compensated pitch, volume and panning values."""
 
-    def __new__(cls, note: Union[pynbs.Note, Note]):
-        return super().__new__(
-            cls,
+    def __init__(cls, note: Union[pynbs.Note, Note]):
+        return super().__init__(
             note.tick,
             note.layer,
             note.instrument,
