@@ -111,6 +111,55 @@ class Song(pynbs.File):
     def duration(self) -> None:
         self._duration = len(self) / self.header.tempo * 1000
 
+    @property
+    def tempo_changer_ids(self) -> List[int]:
+        """
+        Return a list of all instruments which act as tempo changers.
+        This is a hidden NBS feature.
+        """
+        return [
+            ins.id + self.header.default_instruments
+            for ins in self.instruments
+            if ins.name == "Tempo Changer"
+        ]
+
+    @property
+    def has_tempo_changers(self) -> bool:
+        """Return true if this song contains any tempo changes."""
+        tc_ids = self.tempo_changer_ids
+        return tc_ids != [] and any(note.instrument in tc_ids for note in self.notes)
+
+    @property
+    def tempo_segments(self) -> List[float]:
+        """
+        Return a list with the same length as the number of ticks in the song,
+        where each value is the point in milliseconds where that tick is played.
+        """
+        tc_ids = self.tempo_changer_ids
+        tempo_change_blocks = [note for note in self.notes if note.instrument in tc_ids]
+        tempo_change_blocks.sort(key=lambda x: x.tick)
+        current_tick = 0
+        current_tempo = self.header.tempo
+        tempo_segments = []
+        millis = 0
+        for note in tempo_change_blocks:
+            # Edge case: if there are multiple tempo changers in the same tick,
+            # the following will be a no-op, so only the first is considered
+            for tick in range(current_tick, note.tick):
+                millis += 1 / current_tempo * 1000
+                tempo_segments.append(millis)
+            current_tick = note.tick
+            current_tempo = (
+                note.pitch / 15
+            )  # The note pitch is the new BPM of the song (t/s = BPM / 15)
+
+        # Fill the remainder of the song (after the last tempo changer)
+        for tick in range(current_tick, len(self) + 1):
+            millis += 1 / current_tempo * 1000
+            tempo_segments.append(millis)
+
+        return tempo_segments
+
     def weighted_notes(self) -> Iterator[Note]:
         """Return all notes in this song with their layer velocity and panning applied."""
         for note in self.notes:

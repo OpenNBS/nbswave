@@ -109,14 +109,16 @@ class SongRenderer:
             if instrument.id not in self._instruments
         ]
 
-    def get_length(self, notes: Sequence[nbs.Note]) -> float:
+    def get_length(
+        self, notes: Sequence[nbs.Note], tempo_segments: Sequence[float]
+    ) -> float:
         """Get the length of the exported track based on the last
         note to stop ringing.
         """
 
         def get_note_end_time(note: nbs.Note) -> float:
 
-            note_start = note.tick / self._song.header.tempo * 1000
+            note_start = tempo_segments[note.tick]
             sound = self._instruments.get(note.instrument)
 
             if sound is None:  # Sound either missing or not assigned
@@ -138,7 +140,8 @@ class SongRenderer:
         bit_depth: Optional[int] = 16,
     ) -> audio.Track:
 
-        track_length = self.get_length(self._song.weighted_notes())
+        tempo_segments = self._song.tempo_segments
+        track_length = self.get_length(self._song.weighted_notes(), tempo_segments)
 
         mixer = audio.Mixer(
             sample_width=bit_depth // 8,
@@ -205,7 +208,7 @@ class SongRenderer:
             last_vol = vol
             last_pan = pan
 
-            pos = note.tick / self._song.header.tempo * 1000
+            pos = tempo_segments[note.tick]
 
             mixer.overlay(sound, position=pos)
 
