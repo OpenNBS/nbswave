@@ -160,10 +160,18 @@ class Song(pynbs.File):
 
         return tempo_segments
 
+    def get_layer(self, id: int) -> pynbs.Layer:
+        """Return the layer with the given ID."""
+        # The song may not have a layer object for every layer with a note block
+        try:
+            return self.layers[id]
+        except IndexError:
+            return pynbs.Layer(id=id)
+
     def weighted_notes(self) -> Iterator[Note]:
         """Return all notes in this song with their layer velocity and panning applied."""
         for note in self.notes:
-            layer = self.layers[note.layer]
+            layer = self.get_layer(note.layer)
             custom_instrument_id = note.instrument - self.header.default_instruments
             if custom_instrument_id >= 0:
                 instrument = self.instruments[custom_instrument_id]
@@ -190,7 +198,7 @@ class Song(pynbs.File):
         song. If `group_by_name` is true, notes in layers with identical names will be grouped."""
         groups = {}
         for note in self.weighted_notes():
-            layer = self.layers[note.layer]
+            layer = self.get_layer(note.layer)
             group_name = layer.name if group_by_name else f"{layer.id} {layer.name}"
             if group_name not in groups:
                 groups[group_name] = []
