@@ -11,9 +11,9 @@ def load_sound(path: str) -> AudioSegment:
 
 def sync(
     sound: AudioSegment,
-    channels: Optional[int] = 2,
-    frame_rate: Optional[int] = 44100,
-    sample_width: Optional[int] = 2,
+    channels: int = 2,
+    frame_rate: int = 44100,
+    sample_width: int = 2,
 ) -> AudioSegment:
     return (
         sound.set_channels(channels)
@@ -43,10 +43,10 @@ def vol_to_gain(vol: float) -> float:
 class Mixer:
     def __init__(
         self,
-        sample_width: Optional[int] = 2,
-        frame_rate: Optional[int] = 44100,
-        channels: Optional[int] = 2,
-        length: Optional[float] = 0,
+        sample_width: int = 2,
+        frame_rate: int = 44100,
+        channels: int = 2,
+        length: float = 0,
     ):
         self.sample_width = sample_width
         self.frame_rate = frame_rate
@@ -102,7 +102,7 @@ class Mixer:
 
     def to_audio_segment(self):
         peak = np.abs(self.output).max()
-        clipping_factor = peak / (2 ** 15 - 1)
+        clipping_factor = peak / (2**15 - 1)
 
         if clipping_factor > 1:
             print(
@@ -141,11 +141,11 @@ class Track(AudioSegment):
     def save(
         self,
         filename: str,
-        format: Optional[str] = "wav",
-        sample_width: Optional[int] = 2,
-        frame_rate: Optional[int] = 44100,
-        channels: Optional[int] = 2,
-        target_bitrate: Optional[int] = 320,
+        format: str = "wav",
+        sample_width: int = 2,
+        frame_rate: int = 44100,
+        channels: int = 2,
+        target_bitrate: int = 320,
         target_size: Optional[int] = None,
         tags: Optional[Dict[str, str]] = None,
     ):

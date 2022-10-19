@@ -191,9 +191,7 @@ class Song(pynbs.File):
                 groups[name].append(layer.id)
         return groups
 
-    def notes_by_layer(
-        self, group_by_name: Optional[bool] = False
-    ) -> Dict[str, List[Note]]:
+    def notes_by_layer(self, group_by_name: bool = False) -> Dict[str, List[Note]]:
         """Return a dict of lists containing the weighted notes in each non-empty layer of the
         song. If `group_by_name` is true, notes in layers with identical names will be grouped."""
         groups = {}

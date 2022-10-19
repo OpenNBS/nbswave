@@ -1,7 +1,7 @@
 import io
 import os
 import zipfile
-from typing import BinaryIO, Dict, Optional, Sequence, Union
+from typing import BinaryIO, Dict, Sequence, Union
 
 import pydub
 import pynbs
@@ -92,7 +92,7 @@ class SongRenderer:
     def __init__(
         self,
         song: Union[pynbs.File, nbs.Song],
-        default_sound_path: Optional[PathLike] = SOUNDS_PATH,
+        default_sound_path: PathLike = SOUNDS_PATH,
     ):
         if isinstance(song, pynbs.File):
             song = nbs.Song(song)
@@ -135,9 +135,9 @@ class SongRenderer:
         self,
         notes: Sequence[nbs.Note],
         ignore_missing_instruments: bool = False,
-        sample_rate: Optional[int] = 44100,
-        channels: Optional[int] = 2,
-        bit_depth: Optional[int] = 16,
+        sample_rate: int = 44100,
+        channels: int = 2,
+        bit_depth: int = 16,
     ) -> audio.Track:
 
         tempo_segments = self._song.tempo_segments
