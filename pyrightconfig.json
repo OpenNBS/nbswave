@@ -1,0 +1,6 @@
+{
+    "executionEnvironments": [
+        {"root": "nbswave"}
+    ],
+    "typeCheckingMode": "strict",
+}
