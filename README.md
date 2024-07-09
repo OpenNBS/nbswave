@@ -35,6 +35,7 @@ from nbswave import *
 render_audio("song.nbs", "output", format='wav')
 ```
 
+> [!NOTE]
 > Compatibility with audio formats depends on your FFmpeg configuration.
 
 ### Custom instruments
@@ -72,8 +73,13 @@ renderer.load_instruments("some_more_instruments.zip")
 
 renderer.missing_instruments()
 
-renderer.mix_song()
+track = renderer.mix_song()
+
+track.save("song.mp3")
 ```
+
+> [!TIP]
+> For additional parameters, check out the source code!
 
 ## Contributing
 
