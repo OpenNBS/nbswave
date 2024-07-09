@@ -15,7 +15,7 @@ class Note(pynbs.Note):
     """Extends `pynbs.Note` with extra functionality to calculate
     the compensated pitch, volume and panning values."""
 
-    def __init__(cls, note: Union[pynbs.Note, Note]):
+    def __init__(self, note: Union[pynbs.Note, Note]):
         return super().__init__(
             note.tick,
             note.layer,
@@ -193,7 +193,8 @@ class Song(pynbs.File):
 
     def notes_by_layer(self, group_by_name: bool = False) -> Dict[str, List[Note]]:
         """Return a dict of lists containing the weighted notes in each non-empty layer of the
-        song. If `group_by_name` is true, notes in layers with identical names will be grouped."""
+        song. If `group_by_name` is true, notes in layers with identical names will be grouped.
+        """
         groups = {}
         for note in self.weighted_notes():
             layer = self.get_layer(note.layer)

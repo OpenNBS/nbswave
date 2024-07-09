@@ -55,7 +55,7 @@ class Mixer:
 
     def _get_array_size(self, length_in_ms: float) -> int:
         frame_count = length_in_ms * (self.frame_rate / 1000.0)
-        array_size = frame_count * self.channels
+        array_size = int(frame_count * self.channels)
         array_size_aligned = self._get_aligned_array_size(array_size)
         return array_size_aligned
 
@@ -65,7 +65,7 @@ class Mixer:
         length_aligned = math.ceil(length / align) * align
         return length_aligned
 
-    def overlay(self, sound, position=0):
+    def overlay(self, sound: AudioSegment, position: int = 0):
         sound_sync = self._sync(sound)
         samples = np.frombuffer(sound_sync.get_array_of_samples(), dtype="int16")
 
@@ -97,7 +97,7 @@ class Mixer:
     def __len__(self):
         return len(self.output) / ((self.frame_rate / 1000.0) * self.channels)
 
-    def append(self, sound):
+    def append(self, sound: AudioSegment):
         self.overlay(sound, position=len(self))
 
     def to_audio_segment(self):
