@@ -16,7 +16,7 @@ packages = [
 ]
 
 [tool.poetry.dependencies]
-python = ">=3.8, <3.11"
+python = ">=3.8, <3.13"
 pydub = "^0.25.1"
 pynbs = "^1.1.0"
 numpy = "^1.23.1"
