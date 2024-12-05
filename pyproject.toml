@@ -17,9 +17,10 @@ packages = [
 
 [tool.poetry.dependencies]
 python = ">=3.8, <3.13"
-pydub = "^0.25.1"
 pynbs = "^1.1.0"
 numpy = "^1.23.1"
+soundfile = "^0.12.1"
+samplerate = "^0.2.1"
 
 [tool.poetry.dev-dependencies]
 black = "^22.6.0"
