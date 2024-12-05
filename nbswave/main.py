@@ -3,7 +3,6 @@ import os
 import zipfile
 from typing import BinaryIO, Dict, Sequence, Union
 
-import pydub
 import pynbs
 
 from . import audio, nbs
@@ -39,7 +38,7 @@ class MissingInstrumentException(Exception):
     pass
 
 
-def load_default_instruments(path: PathLike) -> Dict[int, pydub.AudioSegment]:
+def load_default_instruments(path: PathLike) -> Dict[int, audio.AudioSegment]:
     segments = {}
     for index, ins in enumerate(DEFAULT_INSTRUMENTS):
         filename = os.path.join(os.getcwd(), path, ins)
@@ -50,7 +49,7 @@ def load_default_instruments(path: PathLike) -> Dict[int, pydub.AudioSegment]:
 
 def load_custom_instruments(
     song: pynbs.File, path: ZipFileOrPath
-) -> Dict[int, pydub.AudioSegment]:
+) -> Dict[int, audio.AudioSegment]:
     segments = {}
 
     zip_file = None
@@ -192,15 +191,14 @@ class SongRenderer:
                 last_vol = None
                 last_pan = None
                 pitch = audio.key_to_pitch(key)
-                sound2 = audio.change_speed(sound1, pitch)
+                sound2 = sound1.set_speed(pitch)
 
             if vol != last_vol:
                 last_pan = None
-                gain = audio.vol_to_gain(vol)
-                sound3 = sound2.apply_gain(gain)
+                sound3 = sound2.set_volume(vol)
 
             if pan != last_pan:
-                sound4 = sound3.pan(pan)
+                sound4 = sound3.set_panning(pan)
                 sound = sound4
 
             last_ins = ins
