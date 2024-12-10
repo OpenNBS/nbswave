@@ -20,7 +20,7 @@ python = ">=3.8, <3.13"
 pynbs = "^1.1.0"
 numpy = "^1.23.1"
 soundfile = "^0.12.1"
-samplerate = "^0.2.1"
+samplerate = {git = "https://github.com/tuxu/python-samplerate.git", rev = "refs/pull/14/merge"}
 
 [tool.poetry.dev-dependencies]
 black = "^22.6.0"

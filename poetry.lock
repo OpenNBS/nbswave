@@ -259,26 +259,21 @@ files = [
 
 [[package]]
 name = "samplerate"
-version = "0.2.1"
+version = "0.2.1.dev8+gcd62168"
 description = "Monolithic python wrapper for libsamplerate based on pybind11 and NumPy"
 optional = false
 python-versions = ">=3.7"
-files = [
-    {file = "samplerate-0.2.1-cp310-cp310-macosx_12_0_x86_64.whl", hash = "sha256:9b392e857cfeda712585d702871eab7169ba2c63209e8d2314fa2196d6127354"},
-    {file = "samplerate-0.2.1-cp310-cp310-win_amd64.whl", hash = "sha256:c237959ba0fd391b3293f2905c23f1ae15a096fc987cd776aef380ba426491c6"},
-    {file = "samplerate-0.2.1-cp311-cp311-macosx_12_0_universal2.whl", hash = "sha256:b0e1b5cb08edb19d232bd1ba67632590ed7a579b526ab4bf3983b4f2b2e9acb4"},
-    {file = "samplerate-0.2.1-cp311-cp311-win_amd64.whl", hash = "sha256:3ebd447f2040950edc1dac32cb4afed3a74ed37e8e5ffe4775470213f799801f"},
-    {file = "samplerate-0.2.1-cp312-cp312-macosx_12_0_universal2.whl", hash = "sha256:69cc7ad887c36294129315a04a7f43837c7ed9caf42db94e9687cf66c9709200"},
-    {file = "samplerate-0.2.1-cp312-cp312-win_amd64.whl", hash = "sha256:c7f5e81b24debfa25981e367e3f5d191cf72e32b5c92613139f5ba94e7f18c01"},
-    {file = "samplerate-0.2.1-cp38-cp38-macosx_12_0_x86_64.whl", hash = "sha256:a2b39a7131da065072508548f0ab80c9565d8c75212eac2f61fc1b1f82bb1611"},
-    {file = "samplerate-0.2.1-cp38-cp38-win_amd64.whl", hash = "sha256:c02d6e0f7541c4f6a64b97ff6d0a84f53a0c432c965031491b48d9d75a81f102"},
-    {file = "samplerate-0.2.1-cp39-cp39-macosx_12_0_x86_64.whl", hash = "sha256:137563c6069e23441b4c2059cf95a3ed5b20a6d747d0488014becb94b4dfc32f"},
-    {file = "samplerate-0.2.1-cp39-cp39-win_amd64.whl", hash = "sha256:0656233932f76af6070f56edf34d8ef56e62e2c503553229d2388953a2166cda"},
-    {file = "samplerate-0.2.1.tar.gz", hash = "sha256:464d3574412024184fb7428ecbaa1b2e207bddf5fbc10a5d9ddc3fc1c7b7ab1e"},
-]
+files = []
+develop = false
 
 [package.dependencies]
 numpy = "*"
+
+[package.source]
+type = "git"
+url = "https://github.com/tuxu/python-samplerate.git"
+reference = "refs/pull/14/merge"
+resolved_reference = "cd62168ec3fdb38770f8bc0405b7f2e00e119d4d"
 
 [[package]]
 name = "soundfile"
@@ -315,26 +310,6 @@ files = [
 ]
 
 [[package]]
-name = "tornado"
-version = "6.4.1"
-description = "Tornado is a Python web framework and asynchronous networking library, originally developed at FriendFeed."
-optional = false
-python-versions = ">=3.8"
-files = [
-    {file = "tornado-6.4.1-cp38-abi3-macosx_10_9_universal2.whl", hash = "sha256:163b0aafc8e23d8cdc3c9dfb24c5368af84a81e3364745ccb4427669bf84aec8"},
-    {file = "tornado-6.4.1-cp38-abi3-macosx_10_9_x86_64.whl", hash = "sha256:6d5ce3437e18a2b66fbadb183c1d3364fb03f2be71299e7d10dbeeb69f4b2a14"},
-    {file = "tornado-6.4.1-cp38-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:e2e20b9113cd7293f164dc46fffb13535266e713cdb87bd2d15ddb336e96cfc4"},
-    {file = "tornado-6.4.1-cp38-abi3-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:8ae50a504a740365267b2a8d1a90c9fbc86b780a39170feca9bcc1787ff80842"},
-    {file = "tornado-6.4.1-cp38-abi3-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:613bf4ddf5c7a95509218b149b555621497a6cc0d46ac341b30bd9ec19eac7f3"},
-    {file = "tornado-6.4.1-cp38-abi3-musllinux_1_2_aarch64.whl", hash = "sha256:25486eb223babe3eed4b8aecbac33b37e3dd6d776bc730ca14e1bf93888b979f"},
-    {file = "tornado-6.4.1-cp38-abi3-musllinux_1_2_i686.whl", hash = "sha256:454db8a7ecfcf2ff6042dde58404164d969b6f5d58b926da15e6b23817950fc4"},
-    {file = "tornado-6.4.1-cp38-abi3-musllinux_1_2_x86_64.whl", hash = "sha256:a02a08cc7a9314b006f653ce40483b9b3c12cda222d6a46d4ac63bb6c9057698"},
-    {file = "tornado-6.4.1-cp38-abi3-win32.whl", hash = "sha256:d9a566c40b89757c9aa8e6f032bcdb8ca8795d7c1a9762910c722b1635c9de4d"},
-    {file = "tornado-6.4.1-cp38-abi3-win_amd64.whl", hash = "sha256:b24b8982ed444378d7f21d563f4180a2de31ced9d8d84443907a0a64da2072e7"},
-    {file = "tornado-6.4.1.tar.gz", hash = "sha256:92d3ab53183d8c50f8204a51e6f91d18a15d5ef261e84d452800d4ff6fc504e9"},
-]
-
-[[package]]
 name = "typing-extensions"
 version = "4.3.0"
 description = "Backported and Experimental Type Hints for Python 3.7+"
@@ -348,4 +323,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.8, <3.13"
-content-hash = "ab3338500e5155129999118c61846834238ef251f2d03542ec0196ed5a9d54ad"
+content-hash = "380e3571a927d341f375719e1b5016666351836e6605f38418b24991138393a0"
