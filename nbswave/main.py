@@ -151,64 +151,45 @@ class SongRenderer:
 
         sorted_notes = nbs.sorted_notes(notes)
 
-        last_ins = None
-        last_key = None
-        last_vol = None
-        last_pan = None
-
+        # Get all unique resampling operations
+        overlay_ops: dict[
+            tuple[int, float],
+            tuple[audio.AudioSegment, float, list[audio.OverlayOperation]],
+        ] = {}
         for note in sorted_notes:
+            try:
+                sound = self._instruments[note.instrument]
+            except KeyError:  # Sound file missing
+                if not ignore_missing_instruments:
+                    custom_ins_id = (
+                        note.instrument - self._song.header.default_instruments
+                    )
+                    instrument_data = self._song.instruments[custom_ins_id]
+                    ins_name = instrument_data.name
+                    ins_file = instrument_data.file
+                    raise MissingInstrumentException(
+                        f"The sound file for instrument {ins_name} was not found: {ins_file}"
+                    )
+            sound = mixer._sync(sound)
+            pitch = audio.key_to_pitch(note.key)
+            pos = round(tempo_segments[note.tick])
 
-            ins = note.instrument
-            key = note.key
-            vol = note.velocity
-            pan = note.panning
+            context = audio.OverlayOperation(pos, note.velocity, note.panning)
+            resampling_combo = (note.instrument, pitch)
+            if resampling_combo not in overlay_ops:
+                overlay_ops[resampling_combo] = (sound, pitch, [])
+            overlay_ops[resampling_combo][2].append(context)
 
-            if ins != last_ins:
-                last_key = None
-                last_vol = None
-                last_pan = None
+        # Overlay notes as resampled audio segments are returned
+        for sound, overlays in mixer.batch_resample(overlay_ops.values()):
+            overlays: list[audio.OverlayOperation]
+            for overlay in overlays:
+                pos = overlay.position
+                vol = overlay.volume
+                pan = overlay.panning
 
-                try:
-                    sound1 = self._instruments[note.instrument]
-                except KeyError:  # Sound file missing
-                    if not ignore_missing_instruments:
-                        custom_ins_id = ins - self._song.header.default_instruments
-                        instrument_data = self._song.instruments[custom_ins_id]
-                        ins_name = instrument_data.name
-                        ins_file = instrument_data.file
-                        raise MissingInstrumentException(
-                            f"The sound file for instrument {ins_name} was not found: {ins_file}"
-                        )
-                    else:
-                        continue
-
-                if sound1 is None:  # Sound file not assigned
-                    continue
-
-                sound1 = audio.sync(sound1)
-
-            if key != last_key:
-                last_vol = None
-                last_pan = None
-                pitch = audio.key_to_pitch(key)
-                sound2 = sound1.set_speed(pitch)
-
-            if vol != last_vol:
-                last_pan = None
-                sound3 = sound2.set_volume(vol)
-
-            if pan != last_pan:
-                sound4 = sound3.set_panning(pan)
-                sound = sound4
-
-            last_ins = ins
-            last_key = key
-            last_vol = vol
-            last_pan = pan
-
-            pos = tempo_segments[note.tick]
-
-            mixer.overlay(sound, position=pos)
+                final_sound = sound.set_volume(vol).set_panning(pan)
+                mixer.overlay(final_sound, pos)
 
         return mixer.to_audio_segment()
 

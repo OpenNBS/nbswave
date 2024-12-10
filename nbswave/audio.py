@@ -1,5 +1,8 @@
 import math
-from typing import Dict, Optional
+import threading
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from dataclasses import dataclass
+from typing import Any, Dict, Iterable, Optional, Sequence
 
 import numpy as np
 import samplerate as sr
@@ -18,6 +21,13 @@ def vol_to_gain(vol: float) -> float:
 
 def gain_to_vol(gain: float) -> float:
     return 10 ** (gain / 20)
+
+
+@dataclass
+class OverlayOperation:
+    position: int
+    volume: float
+    panning: float
 
 
 class AudioSegment:
@@ -49,11 +59,11 @@ class AudioSegment:
         return self._spawn(new_data, {"sample_width": sample_width})
 
     def set_frame_rate(self, frame_rate: int):
-
         if frame_rate == self.frame_rate:
             return self
 
         ratio = frame_rate / self.frame_rate
+        # https://libsndfile.github.io/libsamplerate/api_misc.html#converters
         new_data = sr.resample(self.data, ratio, "sinc_best")
         return self._spawn(new_data, {"frame_rate": frame_rate})
 
@@ -147,6 +157,7 @@ class Mixer:
         frame_rate: int = 44100,
         channels: int = 2,
         length: float = 0,
+        max_workers: int = 8,
     ):
         self.sample_width = sample_width
         self.frame_rate = frame_rate
@@ -154,6 +165,7 @@ class Mixer:
         self.output = np.zeros(
             (self._get_array_size(length), self.channels), dtype="float32"
         )
+        self.max_workers = max_workers
 
     def _get_array_size(self, length_in_ms: float) -> int:
         frame_count = length_in_ms * (self.frame_rate / 1000.0)
@@ -179,6 +191,21 @@ class Mixer:
         self.output[start:end] += samples
 
         return self
+
+    def batch_resample(self, tasks: Iterable[tuple[AudioSegment, float, Any]]):
+        """Resample multiple AudioSegments in parallel using ThreadPoolExecutor."""
+
+        def set_speed_with_context(segment: AudioSegment, speed: float, context: Any):
+            return segment.set_speed(speed), context
+
+        with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
+            futures = [
+                executor.submit(set_speed_with_context, segment, speed, context)
+                for segment, speed, context in tasks
+            ]
+            for future in as_completed(futures):
+                print("Completed resampling task", future)
+                yield future.result()
 
     def _sync(self, segment: AudioSegment):
         return (
