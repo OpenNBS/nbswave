@@ -121,6 +121,9 @@ class AudioSegment:
         # Simplified panning algorithm from pydub to operate on numpy arrays
         # https://github.com/jiaaro/pydub/blob/0c26b10619ee6e31c2b0ae26a8e99f461f694e5f/pydub/effects.py#L284
 
+        if panning == 0:
+            return self
+
         max_boost_db = vol_to_gain(2.0)
         boost_db = abs(panning) * max_boost_db
 
