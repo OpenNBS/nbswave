@@ -112,10 +112,10 @@ class AudioSegment:
         left_gain = gain_to_vol(left_gain)
         right_gain = gain_to_vol(right_gain)
 
-        left = self.data[:, 0] * left_gain
-        right = self.data[:, 1] * right_gain
+        self.data[:, 0] *= left_gain
+        self.data[:, 1] *= right_gain
 
-        return self._spawn(np.stack([left, right], axis=1), {})
+        return self
 
     def set_panning(self, panning: float) -> "AudioSegment":
         # Simplified panning algorithm from pydub to operate on numpy arrays
@@ -137,8 +137,10 @@ class AudioSegment:
 
 
 def load_sound(path: str) -> AudioSegment:
-    data, sample_rate = sf.read(path, dtype="float32", always_2d=False)
-    channels = 1 if len(data.shape) == 1 else data.shape[1]
+    data, sample_rate = sf.read(path, dtype="float32", always_2d=True)
+    channels = data.shape[1]
+    if channels == 1:
+        data = np.repeat(data, 2, axis=1)
     return AudioSegment(data, sample_rate, 2, channels)
 
 
