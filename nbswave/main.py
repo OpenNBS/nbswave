@@ -170,7 +170,8 @@ class SongRenderer:
                     raise MissingInstrumentException(
                         f"The sound file for instrument {ins_name} was not found: {ins_file}"
                     )
-            sound = mixer._sync(sound)
+            if sound is None:
+                continue
             pitch = audio.key_to_pitch(note.key)
             pos = round(tempo_segments[note.tick])
 

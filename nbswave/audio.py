@@ -74,7 +74,7 @@ class AudioSegment:
         if channels == 1 and self.channels == 2:
             new_data = np.mean(self.data, axis=1)
         elif channels == 2 and self.channels == 1:
-            new_data = np.stack([self.data, self.data], axis=1)
+            new_data = np.repeat(self.data, 2, axis=1)
         else:
             raise ValueError("Unsupported channel conversion")
 
@@ -91,7 +91,12 @@ class AudioSegment:
     def __len__(self):
         return round(self.duration_seconds * 1000)
 
-    def set_speed(self, speed: float = 1.0) -> "AudioSegment":
+    def set_speed(
+        self, speed: float = 1.0, frame_rate: int | None = None
+    ) -> "AudioSegment":
+        if frame_rate is not None and frame_rate != self.frame_rate:
+            speed *= self.frame_rate / frame_rate
+
         if speed == 1.0:
             return self
 
@@ -137,19 +142,6 @@ def load_sound(path: str) -> AudioSegment:
     return AudioSegment(data, sample_rate, 2, channels)
 
 
-def sync(
-    sound: AudioSegment,
-    channels: int = 2,
-    frame_rate: int = 44100,
-    sample_width: int = 2,
-) -> AudioSegment:
-    return (
-        sound.set_channels(channels)
-        .set_frame_rate(frame_rate)
-        .set_sample_width(sample_width)
-    )
-
-
 class Mixer:
     def __init__(
         self,
@@ -172,8 +164,7 @@ class Mixer:
         return int(frame_count)
 
     def overlay(self, sound: AudioSegment, position: int = 0):
-        sound_sync = self._sync(sound)
-        samples = sound_sync.raw_data
+        samples = sound.raw_data
 
         frame_offset = int(self.frame_rate * position / 1000.0)
 
@@ -196,7 +187,7 @@ class Mixer:
         """Resample multiple AudioSegments in parallel using ThreadPoolExecutor."""
 
         def set_speed_with_context(segment: AudioSegment, speed: float, context: Any):
-            return segment.set_speed(speed), context
+            return segment.set_speed(speed, self.frame_rate), context
 
         with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
             futures = [
@@ -206,13 +197,6 @@ class Mixer:
             for future in as_completed(futures):
                 print("Completed resampling task", future)
                 yield future.result()
-
-    def _sync(self, segment: AudioSegment):
-        return (
-            segment.set_sample_width(self.sample_width)
-            .set_frame_rate(self.frame_rate)
-            .set_channels(self.channels)
-        )
 
     def __len__(self):
         return len(self.output) / ((self.frame_rate / 1000.0) * self.channels)
