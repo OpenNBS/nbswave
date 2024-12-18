@@ -23,6 +23,24 @@ def gain_to_vol(gain: float) -> float:
     return 10 ** (gain / 20)
 
 
+def panning_to_vol(panning: float) -> tuple[float, float]:
+    # Simplified panning algorithm from pydub to operate on numpy arrays
+    # https://github.com/jiaaro/pydub/blob/0c26b10619ee6e31c2b0ae26a8e99f461f694e5f/pydub/effects.py#L284
+
+    max_boost_db = gain_to_vol(2.0)
+    boost_db = abs(panning) * max_boost_db
+
+    boost_factor = gain_to_vol(boost_db)
+    reduce_factor = gain_to_vol(max_boost_db) - boost_factor
+
+    boost_factor /= 2.0
+
+    if panning < 0:
+        return boost_factor, reduce_factor
+    else:
+        return reduce_factor, boost_factor
+
+
 @dataclass
 class OverlayOperation:
     position: int
@@ -108,35 +126,18 @@ class AudioSegment:
     def set_volume(self, volume: float) -> "AudioSegment":
         return self._spawn(self.raw_data * volume, {})
 
-    def apply_gain_stereo(self, left_gain: float, right_gain: float) -> "AudioSegment":
-        left_gain = gain_to_vol(left_gain)
-        right_gain = gain_to_vol(right_gain)
+    def apply_volume_stereo(self, left_vol: float, right_vol: float) -> "AudioSegment":
+        left = self.data[:, 0] * left_vol
+        right = self.data[:, 1] * right_vol
 
-        self.data[:, 0] *= left_gain
-        self.data[:, 1] *= right_gain
-
-        return self
+        return self._spawn(np.stack([left, right], axis=1), {})
 
     def set_panning(self, panning: float) -> "AudioSegment":
         # Simplified panning algorithm from pydub to operate on numpy arrays
         # https://github.com/jiaaro/pydub/blob/0c26b10619ee6e31c2b0ae26a8e99f461f694e5f/pydub/effects.py#L284
 
-        if panning == 0:
-            return self
-
-        max_boost_db = vol_to_gain(2.0)
-        boost_db = abs(panning) * max_boost_db
-
-        boost_factor = gain_to_vol(boost_db)
-        reduce_factor = gain_to_vol(max_boost_db) - boost_factor
-
-        reduce_db = vol_to_gain(reduce_factor)
-        boost_db /= 2.0
-
-        if panning < 0:
-            return self.apply_gain_stereo(boost_db, reduce_db)
-        else:
-            return self.apply_gain_stereo(reduce_db, boost_db)
+        left_vol, right_vol = panning_to_vol(panning)
+        return self.apply_volume_stereo(left_vol, right_vol)
 
 
 def load_sound(path: str) -> AudioSegment:
