@@ -204,7 +204,6 @@ class Mixer:
                 for segment, speed, context in tasks
             ]
             for future in as_completed(futures):
-                print("Completed resampling task", future)
                 yield future.result()
 
     def __len__(self):

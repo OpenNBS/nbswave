@@ -182,6 +182,7 @@ class SongRenderer:
             overlay_ops[resampling_combo][2].append(context)
 
         # Overlay notes as resampled audio segments are returned
+        print("Waiting for threads to finish...")
         for sound, overlays in mixer.batch_resample(overlay_ops.values()):
             overlays: list[audio.OverlayOperation]
 
