@@ -184,13 +184,28 @@ class SongRenderer:
         # Overlay notes as resampled audio segments are returned
         for sound, overlays in mixer.batch_resample(overlay_ops.values()):
             overlays: list[audio.OverlayOperation]
+
+            prev_vol = None
+            prev_pan = None
+
+            final_sound = sound
+
             for overlay in overlays:
                 pos = overlay.position
                 vol = overlay.volume
                 pan = overlay.panning
 
-                final_sound = sound.set_volume(vol).set_panning(pan)
+                if prev_vol != vol:
+                    final_sound = sound.set_volume(vol)
+                    prev_pan = None
+
+                if prev_pan != pan:
+                    final_sound = final_sound.set_panning(pan)
+
                 mixer.overlay(final_sound, pos)
+
+                prev_vol = vol
+                prev_pan = pan
 
         return mixer.to_audio_segment()
 

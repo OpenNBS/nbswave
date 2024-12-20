@@ -67,7 +67,7 @@ class AudioSegment:
             "channels": self.channels,
         }
         metadata.update(overrides)
-        return self.__class__(data=data, **metadata)
+        return self.__class__(data=data.copy(), **metadata)
 
     def set_sample_width(self, sample_width: int):
         if sample_width == self.sample_width:
@@ -143,8 +143,11 @@ class AudioSegment:
 def load_sound(path: str) -> AudioSegment:
     data, sample_rate = sf.read(path, dtype="float32", always_2d=True)
     channels = data.shape[1]
+
+    # TODO: remove channel count coercion
     if channels == 1:
         data = np.repeat(data, 2, axis=1)
+
     return AudioSegment(data, sample_rate, 2, channels)
 
 
@@ -268,6 +271,6 @@ class Track(AudioSegment):
         else:
             bitrate = target_bitrate
 
-        output_segment = sync(self, channels, frame_rate, sample_width)
+        output_segment = self  # sync(self, channels, frame_rate, sample_width)
 
         sf.write(filename, output_segment.raw_data, samplerate=frame_rate)
